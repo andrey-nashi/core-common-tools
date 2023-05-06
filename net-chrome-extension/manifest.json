@@ -1,0 +1,8 @@
+{
+  "name": "TEMPLATE",
+  "description": "TEMPLATE FOR CHROME EXTENSIONS",
+  "version": "1.0",
+  "manifest_version": 2,
+  "background": {"scripts": ["action.js"]},
+  "permissions": [ "webNavigation", "*://*/*" ]
+}
