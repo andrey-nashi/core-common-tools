@@ -1,0 +1,15 @@
+# ---- Identity key file (path relative to resources) for ssh and sshfs connections.
+# ---- If not specified identity file will not be used
+SSH_IDENTITY_FILE: null
+
+# ---- Map of available ssh connections.
+# ---- For each machine specify IP, user (could be null if same as current) and port (if needed)
+NETWORK_MAP:
+  remote_machine:
+    IP: "192.168.1.1"
+    USER: null
+    PORT: null
+
+# ---- Map of mount points, endpoint name->list of 3-elements [$machine_name, $local_path, $remote_path]
+MOUNT_POINTS:
+  "remote-home": ["remote_machine", "/home/indra/rhs", "/home/indra"]
