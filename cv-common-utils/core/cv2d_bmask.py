@@ -117,7 +117,7 @@ def cv2d_convert_bbox2mask(height: int, width: int, bbox_list: list, label_list:
     :param label_list: list of labels [id, id] or None
     :param label_target: if not None, then pick only boxes with specific labels
     :param score_list: if not None, then generate intensity encoded mask
-    :return:
+    :return: numpy array representing a mask
     """
     mask = np.zeros((height, width), dtype=np.uint8)
 
@@ -138,26 +138,53 @@ def cv2d_convert_bbox2mask(height: int, width: int, bbox_list: list, label_list:
 
     return mask
 
-def cv2d_convert_mask2bbox(mask: np.ndarray, label_target: int, threshold_probability: float = None, threshold_size: int = None):
-    if len(mask.shape) == 3: mask_x = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-    else: mask_x = mask.copy()
+def cv2d_convert_mask2bbox(mask: np.ndarray, threshold_probability: float = None, threshold_size: int = None) -> list:
+    """
+    Detecte connected components on a given grayscale mask, calculate bounding boxes and scores. Score is
+    the average intensity of the object / 255. Before executing connected components the mask will be
+    transformed into binary one using the threshold_probability, and objects less size than
+    threshold_size will not be used.
+    :param mask: a numpy array, if BGR is given will be automatically converted to grayscale
+    :param threshold_probability: threshold to apply binarization of the given mask, if not given '128' will be used
+    :param threshold_size: objects less than this threshold will not be taken into account
+    :return: list of dictionaries {"bbox": [x_min, y_min, x_max, y_max], "score": s}
+    """
 
-    r, mask_binary = cv2.threshold(mask_x, int(threshold_probability * 255), 255, cv2.THRESH_BINARY)
+    # ---- Check arguments
+    if threshold_probability <= 0: return None
+    if threshold_probability > 1: return None
+    if threshold_size < 0: return None
+    if threshold_size is None: threshold_size = 0
+
+    # ---- Convert to grayscale mask if needed
+    if len(mask.shape) == 3:
+        mask_x = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    else:
+        mask_x = mask.copy()
+
+    # ---- Make binary mask applying given probability
+    if threshold_probability is not None:
+        r, mask_binary = cv2.threshold(mask_x, int(threshold_probability * 255), 255, cv2.THRESH_BINARY)
+    else:
+        r, mask_binary = cv2.threshold(mask_x, 128, 255, cv2.THRESH_BINARY)
+
+    # ---- Apply connected components
     r, object_map = cv2.connectedComponents(mask_binary)
 
-    out_bbox_list = []
-    out_label_list = []
-    out_score_list = []
+    output = []
 
     for object_id in range(1, np.max(object_map) + 1):
         object_xy = np.argwhere(object_map == object_id).T
         object_size = len(object_xy[0])
-        object_score = np.mean(mask_binary[object_map == object_id]) / 255
+        object_score = np.mean(mask_x[object_map == object_id]) / 255
 
         if object_size > threshold_size:
             bbox_x_min = int(min(object_xy[1]))
             bbox_y_min = int(min(object_xy[0]))
             bbox_x_max = int(max(object_xy[1]))
             bbox_y_max = int(max(object_xy[0]))
-            label = int(label_name)
             score = float(object_score)
+
+            output.append({"bbox": [bbox_x_min, bbox_y_min, bbox_x_max, bbox_y_max], "score": score})
+
+    return output
