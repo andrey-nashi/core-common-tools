@@ -147,7 +147,7 @@ def cv2d_convert_mask2bbox(mask: np.ndarray, threshold_probability: float = None
     :param mask: a numpy array, if BGR is given will be automatically converted to grayscale
     :param threshold_probability: threshold to apply binarization of the given mask, if not given '128' will be used
     :param threshold_size: objects less than this threshold will not be taken into account
-    :return: list of dictionaries {"bbox": [x_min, y_min, x_max, y_max], "score": s}
+    :return: list of dictionaries {"bbox": [x_min, y_min, x_max, y_max], "score": s} or None
     """
 
     # ---- Check arguments
