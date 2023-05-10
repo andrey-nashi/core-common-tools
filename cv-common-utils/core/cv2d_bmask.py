@@ -189,15 +189,23 @@ def cv2d_convert_mask2bbox(mask: np.ndarray, threshold_probability: float = None
 
     return output
 
-def cv2d_convert_polygon2mask(width: int, height: int, vertex_list: list) -> np.ndarray:
+def cv2d_convert_polygon2mask(width: int, height: int, vertex_list: list, intensity: int = 255) -> np.ndarray:
+    """
+    Generate a mask of resolution (width, height) and draw a polygon specified by the list of vertices.
+    :param width: width of the output mask
+    :param height: height of the output mask
+    :param vertex_list: list of polygon vertices [x,y]
+    :param intensity: value of the pixels of the generated polygon
+    :return:
+    """
     mask = np.zeros((height, width), dtype=np.uint8)
     v = np.array(vertex_list, np.int32)
     v = v.reshape((-1, 1, 2))
-    cv2.fillPoly(mask, [v], (0, 255, 255))
+    cv2.fillPoly(mask, [v], (intensity))
     return mask
 
 def cv2d_convert_polygons2mask(width: int, height: int, polygon_list: list) -> np.ndarray:
-    print(polygon_list)
+
     mask = np.zeros((height, width), dtype=np.uint8)
     for polygon in polygon_list:
         v = np.array(polygon, np.int32)
