@@ -188,3 +188,19 @@ def cv2d_convert_mask2bbox(mask: np.ndarray, threshold_probability: float = None
             output.append({"bbox": [bbox_x_min, bbox_y_min, bbox_x_max, bbox_y_max], "score": score})
 
     return output
+
+def cv2d_convert_polygon2mask(width: int, height: int, vertex_list: list) -> np.ndarray:
+    mask = np.zeros((height, width), dtype=np.uint8)
+    v = np.array(vertex_list, np.int32)
+    v = v.reshape((-1, 1, 2))
+    cv2.fillPoly(mask, [v], (0, 255, 255))
+    return mask
+
+def cv2d_convert_polygons2mask(width: int, height: int, polygon_list: list) -> np.ndarray:
+    print(polygon_list)
+    mask = np.zeros((height, width), dtype=np.uint8)
+    for polygon in polygon_list:
+        v = np.array(polygon, np.int32)
+        v = v.reshape((-1, 1, 2))
+        cv2.fillPoly(mask, [v], (255))
+    return mask
