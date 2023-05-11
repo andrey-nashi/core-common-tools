@@ -56,7 +56,6 @@ class LabelmeFile:
         return output
 
 
-
 class LabelmeDataset:
 
 
@@ -85,10 +84,11 @@ class LabelmeDataset:
 
 
 def generate_masks(path_dir_labelme: str, path_dir_mask: str):
+    if not os.path.exists(path_dir_mask):
+        os.makedirs(path_dir_mask)
+
     ld = LabelmeDataset()
     ld.load_from_dir(path_dir_labelme)
-    print(ld.label_list)
-    print(ld.size)
 
     for lf_key in ld.table:
         lf = ld.table[lf_key]
@@ -97,3 +97,8 @@ def generate_masks(path_dir_labelme: str, path_dir_mask: str):
         mask = cv2d_convert_polygons2mask(lf.width, lf.height, polygon_list)
         path_mask = os.path.join(path_dir_mask, lf_key + ".png")
         cv2.imwrite(path_mask, mask)
+
+pd = "20221201"
+path_in = "/home/andrey/Dev/tote-data/" + pd
+path_out = "/home/andrey/Dev/tote-data/" + pd + "_mask"
+generate_masks(path_in, path_out)

@@ -7,8 +7,8 @@ from core.datasets.ds_segmentation import DatasetSegmentationBinary
 from core.models.seg_smp.model_pl import SmpModel_Light
 
 #-----------------------------------------------------------------------------------------
-path_json_train = "/home/andrey/Dev/tote-data/td-train.json"
-path_json_val = "/home/andrey/Dev/tote-data/td-val.json"
+path_json_train = "/home/andrey/Dev/tote-data/td2-train.json"
+path_json_val = "/home/andrey/Dev/tote-data/td2-valid.json"
 path_root = "/home/andrey/Dev/tote-data/"
 
 transform_train = alb.Compose([
@@ -40,5 +40,5 @@ out_channels = 1
 loss_func = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True)
 model = SmpModel_Light(smp_architecture, smp_encoder, in_channels, out_channels, loss_func)
 
-trainer = pl.Trainer(max_epochs=10)
+trainer = pl.Trainer(max_epochs=30)
 trainer.fit(model, train_dataloaders=train_dataloader, val_dataloaders=valid_dataloader)

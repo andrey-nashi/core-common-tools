@@ -44,22 +44,39 @@ class DatasetSegmentationBinary(AbstractDataset):
         path_image = self.samples_table[sample_index][self.SERIAL_KEY_IMAGE]
         path_mask = self.samples_table[sample_index][self.SERIAL_KEY_MASK]
 
-        if self.path_root_dir is not None:
-            path_image = os.path.join(self.path_root_dir, path_image)
-            path_mask = os.path.join(self.path_root_dir, path_mask)
+        # ---- Dataset with both image and mask are specified
+        if path_image is not None and path_mask is not None:
 
-        image = cv2.imread(path_image)
-        mask = cv2.imread(path_mask)
-        mask = cv2.cvtColor(mask, cv2.COLOR_BGRA2GRAY)
-        mask = mask / 255
+            if self.path_root_dir is not None:
+                path_image = os.path.join(self.path_root_dir, path_image)
+                path_mask = os.path.join(self.path_root_dir, path_mask)
 
-        transformed = self.transform_func(image=image, mask=mask)
-        transformed_image = transformed['image']
-        transformed_mask = transformed['mask']
+            image = cv2.imread(path_image)
+            mask = cv2.imread(path_mask)
+            mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+            mask = mask / 255
 
-        if self.is_to_tensor:
-            transformed_image = convert_image2tensor(transformed_image)
-            transformed_mask = convert_image2tensor(transformed_mask)
+            transformed = self.transform_func(image=image, mask=mask)
+            transformed_image = transformed['image']
+            transformed_mask = transformed['mask']
 
-        return transformed_image, transformed_mask
+            if self.is_to_tensor:
+                transformed_image = convert_image2tensor(transformed_image)
+                transformed_mask = convert_image2tensor(transformed_mask)
+
+            return transformed_image, transformed_mask
+
+        # ---- Dataset with only image specified, can be used in testing
+        if path_image is not None and path_mask is None:
+            if self.path_root_dir is not None:
+                path_image = os.path.join(self.path_root_dir, path_image)
+
+            image = cv2.imread(path_image)
+            transformed = self.transform_func(image=image)
+            transformed_image = transformed['image']
+
+            if self.is_to_tensor:
+                transformed_image = convert_image2tensor(transformed_image)
+
+            return transformed_image, None
 

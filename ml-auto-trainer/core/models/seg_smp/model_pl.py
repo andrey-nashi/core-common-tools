@@ -7,7 +7,7 @@ class SmpModel_Light(pl.LightningModule):
     def __init__(self, smp_nn_model: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable, is_log_iou: bool = True, **kwargs):
         super().__init__()
 
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=['loss_func'])
 
         self.model = smp.create_model(smp_nn_model, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes, **kwargs)
 
@@ -20,6 +20,8 @@ class SmpModel_Light(pl.LightningModule):
         self.cache = []
 
     def forward(self, image):
+        if image.device != self.device:
+            image = image.to(self.device)
         image = (image - self.mean) / self.std
         mask = self.model(image)
         return mask

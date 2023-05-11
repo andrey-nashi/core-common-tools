@@ -29,8 +29,9 @@ class AbstractDataset(Dataset):
         self.is_to_tensor = True
         self.samples_table = []
 
-    def switch_to_tensor(self):
-        self.is_to_tensor = not self.is_to_tensor
+    def switch_to_tensor(self, forced_flag: bool = None):
+        if forced_flag is None: self.is_to_tensor = not self.is_to_tensor
+        else: self.is_to_tensor = forced_flag
 
     def serialize_from_json(self, path_file: str, **kwargs):
         return
