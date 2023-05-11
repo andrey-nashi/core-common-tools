@@ -1,5 +1,6 @@
-import numpy as np
+import copy
 import torch
+import numpy as np
 
 from torch.utils.data import Dataset
 
@@ -14,7 +15,8 @@ def convert_image2tensor(image: np.ndarray) -> torch.Tensor:
         transformed_image = transformed_image.permute(2, 0, 1)
         return transformed_image
     if image.ndim == 2:
-        transformed_image = torch.unsqueeze(image, 0)
+        transformed_image = torch.from_numpy(image)
+        transformed_image = torch.unsqueeze(transformed_image, 0)
         return transformed_image
     return None
 
@@ -30,8 +32,14 @@ class AbstractDataset(Dataset):
     def switch_to_tensor(self):
         self.is_to_tensor = not self.is_to_tensor
 
+    def serialize_from_json(self, path_file: str, **kwargs):
+        return
+
+    def serialize_to_json(self, path_file: str, **kwargs):
+        return
+
     def __len__(self):
-        return len(self.table)
+        return len(self.samples_table)
 
     def __getitem__(self, sample_index: int):
         if sample_index < len(self.samples_table):
@@ -42,23 +50,41 @@ class AbstractDataset(Dataset):
     def __add__(self, dataset):
         assert type(self) == type(dataset)
 
-        output = type(self)(self.transform_func)
-        for attribute_name in vars(self):
-            if not
+        output = self.__copy__()
+        output.samples_table = self.samples_table + dataset.samples_table
+        return output
 
-        return a
+    def __copy__(self):
+        new_obj = self.__class__()
+        for k, v in vars(self).items():
+            try:
+                setattr(new_obj, k, copy.deepcopy(v))
+            except:
+                pass
+        return new_obj
 
+    def split(self, ratio_list: list) -> list:
+        """
+        Split this dataset into multiple new datasets in a given ratios.
+        :param ratio_list: list of float values, sum should be 1
+        :return: list of datasets
+        """
+        total = sum(ratio_list)
+        if total != 1: return []
 
+        output = []
+        for i in range(0, len(ratio_list)):
+            if i == 0:
+                limit_min =0
+                limit_max = int(ratio_list[i] * len(self.samples_table))
+            elif i == len(ratio_list) - 1:
+                limit_min = int(sum(ratio_list[0:(len(ratio_list) - 1)]) * len(self.samples_table))
+                limit_max = len(self.samples_table)
+            else:
+                limit_min = int(sum(ratio_list[0:i]) * len(self.samples_table))
+                limit_max = int(sum(ratio_list[0:i+1]) * len(self.samples_table))
+            dataset = self.__copy__()
+            dataset.samples_table = self.samples_table[limit_min:limit_max]
+            output.append(dataset)
 
-
-x = AbstractDataset()
-x.samples_table = [0, 1, 2]
-
-y = AbstractDataset()
-y.samples_table = [3, 6]
-
-z = x + y
-print(z.samples_table)
-
-print(x.samples_table, y.samples_table)
-
+        return output

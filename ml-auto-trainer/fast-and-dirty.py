@@ -292,10 +292,10 @@ model = SmpModel_Light.load_from_checkpoint(path_m)
 path_in = "/home/andrey/Dev/tote-data/kojiya_220830_images"
 path_out = "/home/andrey/Dev/tote-data/test-out"
 
-img = cv2.imread("/home/andrey/Dev/tote-data/vc.jpg")
+img = cv2.imread("/home/andrey/Dev/test-in.jpg")
 mask = predict(model, img)
 oi = draw_mask(img, mask, (0, 0, 255), 0.5)
-cv2.imwrite("/home/andrey/Dev/tote-data/vcc.png", oi)
+cv2.imwrite("/home/andrey/Dev/test-out.jpg", oi)
 def rrr():
     fl =[f for f in os.listdir(path_in) if f.endswith(".png")]
     for file in fl:

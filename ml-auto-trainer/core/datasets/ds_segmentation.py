@@ -1,57 +1,65 @@
 import os
 import cv2
 import json
-from torch.utils.data import Dataset
 
-class DatasetSegmentationBinary(Dataset):
-    def __init__(self, transform):
+from .ds_base import convert_image2tensor
+from .ds_base import AbstractDataset
+
+
+class DatasetSegmentationBinary(AbstractDataset):
+
+    SERIAL_KEY_DATASET = "dataset"
+    SERIAL_KEY_IMAGE = "image"
+    SERIAL_KEY_MASK = "mask"
+
+    def __init__(self, transform_func: callable = None):
+        """
+        Dataset for binary segmentation task where mask is given as 0/255 image
+        :param transform_func: should be a callable method with arguments 'image' and 'mask'
+        which would return a dictionary with 'image' and 'mask' fields.
+        Albumentations style transformation function
+        """
+        super().__init__(transform_func)
         self.path_root_dir = None
-        self.transform = transform
-        self.table = []
-        self.is_to_tensor = True
 
-    def serialize_from_json(self, path_file, path_root_dir: str):
+    def serialize_from_json(self, path_file: str, path_root_dir: str = None):
         f = open(path_file, "r")
         data = json.load(f)
         f.close()
 
         self.path_root_dir = path_root_dir
 
-        for sample in data["dataset"]:
-            path_image = sample["image"]
-            path_mask = sample["mask"]
+        for sample in data[self.SERIAL_KEY_DATASET]:
+            path_image = sample[self.SERIAL_KEY_IMAGE]
+            path_mask = sample[self.SERIAL_KEY_MASK]
 
-            self.table.append({"image": path_image, "mask": path_mask})
+            self.samples_table.append({self.SERIAL_KEY_IMAGE: path_image, self.SERIAL_KEY_MASK: path_mask})
 
-    def switch_flag_tt(self):
-        self.is_to_tensor = not self.is_to_tensor
+    def serialize_to_json(self, path_file: str, **kwargs):
+        f = open(path_file, "w")
+        json.dump({self.SERIAL_KEY_DATASET: self.samples_table}, f)
+        f.close()
 
-    def __len__(self):
-        return len(self.table)
+    def __getitem__(self, sample_index: int):
+        path_image = self.samples_table[sample_index][self.SERIAL_KEY_IMAGE]
+        path_mask = self.samples_table[sample_index][self.SERIAL_KEY_MASK]
 
-    def __getitem__(self, idx):
-        path_absolute_img = os.path.join(self.path_root_dir, self.table[idx]["image"])
-        path_absolute_mask = os.path.join(self.path_root_dir, self.table[idx]["mask"])
+        if self.path_root_dir is not None:
+            path_image = os.path.join(self.path_root_dir, path_image)
+            path_mask = os.path.join(self.path_root_dir, path_mask)
 
-        image = cv2.imread(path_absolute_img)
-
-        mask = cv2.imread(path_absolute_mask)
+        image = cv2.imread(path_image)
+        mask = cv2.imread(path_mask)
         mask = cv2.cvtColor(mask, cv2.COLOR_BGRA2GRAY)
         mask = mask / 255
 
-        transformed = self.transform(image=image, mask=mask)
+        transformed = self.transform_func(image=image, mask=mask)
         transformed_image = transformed['image']
         transformed_mask = transformed['mask']
 
         if self.is_to_tensor:
-            transformed_image = torch.from_numpy(transformed_image)
-            transformed_mask = torch.from_numpy(transformed_mask)
-            transformed_mask = torch.unsqueeze(transformed_mask, 0)
-
-            #print(transformed_image.size(), transformed_mask.size(), "++++++++++++")
-            transformed_image = transformed_image.permute(2, 0, 1)
-
-            #print(transformed_image.size(), transformed_mask.size(), "<<<<<<<<<<<<<<<<<<<<")
+            transformed_image = convert_image2tensor(transformed_image)
+            transformed_mask = convert_image2tensor(transformed_mask)
 
         return transformed_image, transformed_mask
 
