@@ -22,25 +22,54 @@ class DatasetSegmentationBinary(AbstractDataset):
         super().__init__(transform_func)
         self.path_root_dir = None
 
-    def serialize_from_json(self, path_file: str, path_root_dir: str = None):
-        f = open(path_file, "r")
-        data = json.load(f)
-        f.close()
+    def load_from_json(self, path_file: str, path_root_dir: str = None) -> bool:
+        """
+        Load binary segmentation dataset from a JSON file specified by path
+        :param path_file: absolute path to JSON file, must have the following format.
+        {"dataset": [{"image": <path_to_image>, "mask": <path_to_mask>}, {...}]}
+        :param path_root_dir: path to root directory with images or masks, it will
+        be used as prefix to all paths in the JSON dataset
+        :return: True if success, False if failed
+        """
+        try:
+            f = open(path_file, "r")
+            data = json.load(f)
+            f.close()
 
-        self.path_root_dir = path_root_dir
+            self.path_root_dir = path_root_dir
 
-        for sample in data[self.SERIAL_KEY_DATASET]:
-            path_image = sample[self.SERIAL_KEY_IMAGE]
-            path_mask = sample[self.SERIAL_KEY_MASK]
+            for sample in data[self.SERIAL_KEY_DATASET]:
+                path_image = sample[self.SERIAL_KEY_IMAGE]
+                path_mask = sample[self.SERIAL_KEY_MASK]
 
-            self.samples_table.append({self.SERIAL_KEY_IMAGE: path_image, self.SERIAL_KEY_MASK: path_mask})
+                self.samples_table.append({self.SERIAL_KEY_IMAGE: path_image, self.SERIAL_KEY_MASK: path_mask})
+            return True
+        except Exception:
+            return False
 
-    def serialize_to_json(self, path_file: str, **kwargs):
-        f = open(path_file, "w")
-        json.dump({self.SERIAL_KEY_DATASET: self.samples_table}, f)
-        f.close()
+    def save_to_json(self, path_file: str, **kwargs):
+        """
+        Save this dataset into a JSON file by the given path.
+        :param path_file: path to the output JSON file
+        :param kwargs:
+        :return: True if success, False if failed
+        """
+        try:
+            f = open(path_file, "w")
+            json.dump({self.SERIAL_KEY_DATASET: self.samples_table}, f)
+            f.close()
+            return True
+        except Exception:
+            return False
 
     def __getitem__(self, sample_index: int):
+        """
+        Overloded method to be used by torch.Dataloader. Will output a list of two elements
+        :param sample_index: index of the sample
+        :return: list of two items
+        - [image, mask] where both image and mask are numpy arrays or Tensors (depending on the is_to_tensor flag)
+        - [image, None]
+        """
         path_image = self.samples_table[sample_index][self.SERIAL_KEY_IMAGE]
         path_mask = self.samples_table[sample_index][self.SERIAL_KEY_MASK]
 

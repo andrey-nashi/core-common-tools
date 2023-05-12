@@ -30,13 +30,20 @@ class AbstractDataset(Dataset):
         self.samples_table = []
 
     def switch_to_tensor(self, forced_flag: bool = None):
+        """
+        Switch to tensor flag, which specifies whether this dataset will output
+        torch.Tensor or numpy array when __getitem__ method is called.
+        Default state is true, switch is done automatically if forced_flag is None
+        :param forced_flag: if not None, force state
+        :return:
+        """
         if forced_flag is None: self.is_to_tensor = not self.is_to_tensor
         else: self.is_to_tensor = forced_flag
 
-    def serialize_from_json(self, path_file: str, **kwargs):
+    def load_from_json(self, path_file: str, **kwargs):
         return
 
-    def serialize_to_json(self, path_file: str, **kwargs):
+    def save_to_json(self, path_file: str, **kwargs):
         return
 
     def __len__(self):

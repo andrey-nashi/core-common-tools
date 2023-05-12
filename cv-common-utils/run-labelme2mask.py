@@ -1,9 +1,11 @@
 import os
 import cv2
 import json
-
+import argparse
 
 from core.cv2d_bmask import cv2d_convert_polygons2mask
+
+#-----------------------------------------------------------------------------------------
 class LabelmeFile:
 
     KEY_IMAGE_WIDTH = "imageWidth"
@@ -55,9 +57,7 @@ class LabelmeFile:
 
         return output
 
-
 class LabelmeDataset:
-
 
     def __init__(self):
         self.table = {}
@@ -82,6 +82,7 @@ class LabelmeDataset:
     def size(self):
         return len(self.table)
 
+#-----------------------------------------------------------------------------------------
 
 def generate_masks(path_dir_labelme: str, path_dir_mask: str):
     if not os.path.exists(path_dir_mask):
@@ -91,6 +92,7 @@ def generate_masks(path_dir_labelme: str, path_dir_mask: str):
     ld.load_from_dir(path_dir_labelme)
 
     for lf_key in ld.table:
+        print("[INFO]: Generating masks from ", lf_key)
         lf = ld.table[lf_key]
         polygon_list = lf.get_polygons()
 
@@ -98,7 +100,23 @@ def generate_masks(path_dir_labelme: str, path_dir_mask: str):
         path_mask = os.path.join(path_dir_mask, lf_key + ".png")
         cv2.imwrite(path_mask, mask)
 
-pd = "20221201"
-path_in = "/home/andrey/Dev/tote-data/" + pd
-path_out = "/home/andrey/Dev/tote-data/" + pd + "_mask"
-generate_masks(path_in, path_out)
+#-----------------------------------------------------------------------------------------
+
+INFO = (
+    "Convert labelme JSON annotations into masks\n"
+    "--in <path> - path to directory that contains JSON files produced by labelme\n"
+    "--out <path> - path to directory where generated masks will be stored\n"
+)
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description=INFO, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-i", type=str, help="path to directory that contains JSON files produced by labelme")
+    parser.add_argument("-o", type=str, help="path to directory that will contain generated masks")
+    args = parser.parse_args()
+    return args.i, args.o
+
+#-----------------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    path_in, path_out = parse_arguments()
+    generate_masks(path_in, path_out)
