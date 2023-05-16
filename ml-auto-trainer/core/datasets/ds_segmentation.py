@@ -2,7 +2,7 @@ import os
 import cv2
 import json
 
-from .ds_base import convert_image2tensor
+from .ds_base import convert_image2tensor, normalize_numpy
 from .ds_base import AbstractDataset
 
 
@@ -12,7 +12,15 @@ class DatasetSegmentationBinary(AbstractDataset):
     SERIAL_KEY_IMAGE = "image"
     SERIAL_KEY_MASK = "mask"
 
-    def __init__(self, transform_func: callable = None):
+    BK_IMAGE = "image"
+    BK_MASK = "mask"
+    BATCH_KEYS = [BK_IMAGE, BK_MASK]
+
+    NORMALIZE_NONE = 0
+    NORMALIZE_255 = 1
+    NORMALIZE_MINMAX = 2
+
+    def __init__(self, transform_func: callable = None, norm_image_mode: bool = True, norm_mask_mode: bool = True):
         """
         Dataset for binary segmentation task where mask is given as 0/255 image
         :param transform_func: should be a callable method with arguments 'image' and 'mask'
@@ -21,6 +29,8 @@ class DatasetSegmentationBinary(AbstractDataset):
         """
         super().__init__(transform_func)
         self.path_root_dir = None
+        self.norm_image_mode = norm_image_mode
+        self.norm_mask_mode = norm_mask_mode
 
     def load_from_json(self, path_file: str, path_root_dir: str = None) -> bool:
         """
@@ -85,11 +95,11 @@ class DatasetSegmentationBinary(AbstractDataset):
             mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
 
             transformed = self.transform_func(image=image, mask=mask)
-            transformed_image = transformed['image']
-            transformed_mask = transformed['mask']
+            transformed_image = transformed[self.BK_IMAGE]
+            transformed_mask = transformed[self.BK_MASK]
 
-           # transformed_image = transformed_image / 255
-            transformed_mask = transformed_mask / 255
+            transformed_image = normalize_numpy(transformed_image, self.norm_image_mode)
+            transformed_mask = normalize_numpy(transformed_mask, self.norm_mask_mode)
 
             if self.is_to_tensor:
                 transformed_image = convert_image2tensor(transformed_image)
@@ -104,9 +114,9 @@ class DatasetSegmentationBinary(AbstractDataset):
 
             image = cv2.imread(path_image)
             transformed = self.transform_func(image=image)
-            transformed_image = transformed['image']
+            transformed_image = transformed[self.BK_IMAGE]
 
-           # transformed_image = transformed_image / 255
+            transformed_image = normalize_numpy(transformed_image, self.norm_mask_mode)
 
             if self.is_to_tensor:
                 transformed_image = convert_image2tensor(transformed_image)

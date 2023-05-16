@@ -4,7 +4,7 @@ import segmentation_models_pytorch as smp
 import pytorch_lightning as pl
 
 class SmpModel_Light(pl.LightningModule):
-    def __init__(self, smp_nn_model: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable = None, is_save_log: bool = True, **kwargs):
+    def __init__(self, smp_nn_model: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable = None, is_save_log: bool = True, activation: str =None):
         """
         Initialize segmentation model with given architecture, encoder, number of channels.
         :param smp_nn_model: model architecture [Unet, UnetPlusPlus, MAnet, Linknet, FPN, PSPNet, DeepLabV3, DeepLabV3Plus, PAN]
@@ -24,7 +24,7 @@ class SmpModel_Light(pl.LightningModule):
         self.save_hyperparameters(ignore=["loss_func", "is_save_log"])
 
         # ---- Create smp model with given parameters
-        self.model = smp.create_model(smp_nn_model, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes)
+        self.model = smp.create_model(smp_nn_model, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes, activation=activation)
 
         # ---- Initialize imagenet like mean and standard deviation, will not work for non-3 channels _most_likely_
         # ---- FIXME add non-3 channel support
@@ -41,23 +41,23 @@ class SmpModel_Light(pl.LightningModule):
         # ---- This check is useful for testing
         if image.device != self.device:
             image = image.to(self.device)
-        print(image.min(), image.max())
+        #print(image.min(), image.max(), self.mean)
         image = (image - self.mean) / self.std
         mask = self.model(image)
+
         return mask
 
     def shared_step(self, batch, stage):
-
-        # <<<< CORE COMPUTE
         image = batch[0]
-        assert image.ndim == 4
-
         mask_gt = batch[1]
+
+        assert image.ndim == 4
         assert mask_gt.max() <= 1.0 and mask_gt.min() >= 0
 
         mask_pr = self.forward(image)
+        mask_pr = mask_pr.sigmoid()
         loss = self.loss_func(mask_pr, mask_gt)
-        # >>>> CORE COMPUTE
+
 
         # ---- Logging of various metrics to shared cache
         if stage == "valid" and self.is_save_log:
@@ -71,9 +71,8 @@ class SmpModel_Light(pl.LightningModule):
                 "tn": tn.detach().cpu()
             }
             self.cache.append(log_message)
-
-        output = {"loss": loss}
-        return output
+        print(loss)
+        return loss
 
     def shared_epoch_end(self, stage):
 
@@ -124,13 +123,14 @@ class SmpModel_Light(pl.LightningModule):
         """
         transformed_image = torch.from_numpy(image / 255)
         transformed_image = transformed_image.permute(2, 0, 1)
-        transformed_image= transformed_image.float()
+        transformed_image = transformed_image.float()
+        transformed_image = (transformed_image - self.mean) / self.std
 
         if self.training: self.eval()
         with torch.no_grad():
             model_output = self.forward(transformed_image)
             model_output = model_output[0][0].sigmoid().cpu().numpy()
-            model_output = model_output * 255
+            model_output = (model_output > 0.5) * 255
 
         model_output = model_output.astype(np.uint8)
         print("-----------")

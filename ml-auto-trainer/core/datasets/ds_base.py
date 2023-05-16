@@ -5,6 +5,7 @@ import numpy as np
 
 from torch.utils.data import Dataset
 
+#-----------------------------------------------------------------------------------------
 def convert_image2tensor(image: np.ndarray) -> torch.Tensor:
     """
     Convert numpy array that represents an image like (H,W) or (H,W,3) into tensor like (1,H,W) or (3,H,W).
@@ -22,6 +23,13 @@ def convert_image2tensor(image: np.ndarray) -> torch.Tensor:
     return None
 
 
+def normalize_numpy(array, mode):
+    if mode == 0: return array
+    if mode == 1: return array / 255
+    if mode == 2: return (array - np.min(array)) / (np.max(array) - np.min(array))
+
+
+#-----------------------------------------------------------------------------------------
 
 class AbstractDataset(Dataset):
 
