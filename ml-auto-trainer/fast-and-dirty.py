@@ -214,8 +214,8 @@ def make_ds():
     f.close()
 
 def trainX():
-    f_train = "/home/andrey/Dev/tote-data/td-train.json"
-    f_val = "/home/andrey/Dev/tote-data/td-val.json"
+    f_train = "/home/andrey/Dev/tote_detection/experiment/01-train-nod.json"
+    f_val = "/home/andrey/Dev/tote_detection/experiment/01-valid-nod.json"
     path_root = "/home/andrey/Dev/tote-data/"
 
     transform_train = alb.Compose([
@@ -244,77 +244,4 @@ def trainX():
     trainer = pl.Trainer(max_epochs=10)
     trainer.fit(model, train_dataloaders=train_dataloader, val_dataloaders=valid_dataloader)
 
-
-def predict(model, img):
-
-
-    h, w, c = img.shape
-    print(img.shape)
-    img = cv2.resize(img, (512, 512))
-    transformed_image = torch.from_numpy(img)
-    transformed_image = transformed_image.permute(2, 0, 1)
-    transformed_image = transformed_image.cuda()
-    print(transformed_image)
-    model.eval()
-
-    with torch.no_grad():
-        x = model(transformed_image)
-        x = x[0][0].cpu().numpy()
-
-    x = cv2.resize(x, (w, h)) * 255
-    return x
-
-
-
-#trainX()
-
-
-def draw_mask(image: np.ndarray, mask: np.ndarray, color: list, transparency: float = 0.2):
-    mask_h, mask_w = mask.shape
-    image_h = image.shape[0]
-    image_w = image.shape[1]
-
-    if mask_h != image_h or mask_w != image_w:
-        mask = cv2.resize(mask, (image_w, image_h))
-
-    mx = np.zeros((image_h, image_w, 3), dtype=np.uint8)
-
-    mx[mask > 0] = color
-
-    image = cv2.addWeighted(image, 1, mx, transparency, 0)
-
-    return image
-
-
-
-path_m = "./lightning_logs/version_1/checkpoints/epoch=9-step=200.ckpt"
-model = SmpModel_Light.load_from_checkpoint(path_m)
-path_in = "/home/andrey/Dev/tote-data/kojiya_220830_images"
-path_out = "/home/andrey/Dev/tote-data/test-out"
-
-img = cv2.imread("/home/andrey/Dev/test-in.jpg")
-mask = predict(model, img)
-oi = draw_mask(img, mask, (0, 0, 255), 0.5)
-cv2.imwrite("/home/andrey/Dev/test-out.jpg", oi)
-def rrr():
-    fl =[f for f in os.listdir(path_in) if f.endswith(".png")]
-    for file in fl:
-        path_ff = os.path.join(path_in, file)
-        path_fo = os.path.join(path_out, file)
-        img = cv2.imread(path_ff)
-        mask = predict(model, img)
-        oi = draw_mask(img, mask, (0, 0, 255), 0.5)
-        cv2.imwrite(path_fo, oi)
-
-    path_in = "/home/andrey/Dev/tote-data/kojiya_221229_images"
-    fl =[f for f in os.listdir(path_in) if f.endswith(".png")]
-    for file in fl:
-        path_ff = os.path.join(path_in, file)
-        path_fo = os.path.join(path_out, file)
-        img = cv2.imread(path_ff)
-        mask = predict(model, img)
-        oi = draw_mask(img, mask, (0, 0, 255), 0.5)
-        h, w, c = oi.shape
-        oi = cv2.resize(oi, (int(w/3), int(h/3)))
-        cv2.imwrite(path_fo, oi)
-
+trainX()

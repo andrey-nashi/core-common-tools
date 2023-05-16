@@ -24,7 +24,7 @@ class SmpModel_Light(pl.LightningModule):
         self.save_hyperparameters(ignore=["loss_func", "is_save_log"])
 
         # ---- Create smp model with given parameters
-        self.model = smp.create_model(smp_nn_model, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes, **kwargs)
+        self.model = smp.create_model(smp_nn_model, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes)
 
         # ---- Initialize imagenet like mean and standard deviation, will not work for non-3 channels _most_likely_
         # ---- FIXME add non-3 channel support
@@ -41,6 +41,7 @@ class SmpModel_Light(pl.LightningModule):
         # ---- This check is useful for testing
         if image.device != self.device:
             image = image.to(self.device)
+        print(image.min(), image.max())
         image = (image - self.mean) / self.std
         mask = self.model(image)
         return mask
@@ -112,21 +113,26 @@ class SmpModel_Light(pl.LightningModule):
         return self.shared_epoch_end("valid")
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.0001)
+        return torch.optim.Adam(self.parameters(), lr=0.001)
 
 
     def predict(self, image: np.ndarray) -> np.ndarray:
         """
         Predict on a single image
-        :param image: [H, W, 3] image
+        :param image: [H, W, 3] image UINT8
         :return: numpy array of the binary mask [H, W] mask(x,y) in [0|255]
         """
-        transformed_image = torch.from_numpy(image)
+        transformed_image = torch.from_numpy(image / 255)
         transformed_image = transformed_image.permute(2, 0, 1)
+        transformed_image= transformed_image.float()
 
         if self.training: self.eval()
         with torch.no_grad():
-            model_output = self(transformed_image)
-            model_output = model_output[0][0].cpu().numpy()
+            model_output = self.forward(transformed_image)
+            model_output = model_output[0][0].sigmoid().cpu().numpy()
             model_output = model_output * 255
+
+        model_output = model_output.astype(np.uint8)
+        print("-----------")
+        print(model_output, ">>>>>>>>>>>>>>")
         return model_output

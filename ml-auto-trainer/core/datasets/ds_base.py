@@ -1,4 +1,5 @@
 import copy
+import random
 import torch
 import numpy as np
 
@@ -13,11 +14,11 @@ def convert_image2tensor(image: np.ndarray) -> torch.Tensor:
     if image.ndim == 3:
         transformed_image = torch.from_numpy(image)
         transformed_image = transformed_image.permute(2, 0, 1)
-        return transformed_image
+        return transformed_image.float()
     if image.ndim == 2:
         transformed_image = torch.from_numpy(image)
         transformed_image = torch.unsqueeze(transformed_image, 0)
-        return transformed_image
+        return transformed_image.float()
     return None
 
 
@@ -40,11 +41,7 @@ class AbstractDataset(Dataset):
         if forced_flag is None: self.is_to_tensor = not self.is_to_tensor
         else: self.is_to_tensor = forced_flag
 
-    def load_from_json(self, path_file: str, **kwargs):
-        return
-
-    def save_to_json(self, path_file: str, **kwargs):
-        return
+    # -----------------------------------------------------------------------------------------
 
     def __len__(self):
         return len(self.samples_table)
@@ -71,6 +68,21 @@ class AbstractDataset(Dataset):
                 pass
         return new_obj
 
+    # -----------------------------------------------------------------------------------------
+
+    @property
+    def size(self):
+        return len(self.samples_table)
+
+    def set_transform_func(self, transform_func: callable):
+        self.transform_func = transform_func
+
+    def load_from_json(self, path_file: str, **kwargs):
+        return
+
+    def save_to_json(self, path_file: str, **kwargs):
+        return
+
     def split(self, ratio_list: list) -> list:
         """
         Split this dataset into multiple new datasets in a given ratios.
@@ -96,3 +108,6 @@ class AbstractDataset(Dataset):
             output.append(dataset)
 
         return output
+
+    def shuffle(self):
+        random.shuffle(self.samples_table)

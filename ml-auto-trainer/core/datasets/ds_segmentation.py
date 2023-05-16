@@ -83,11 +83,13 @@ class DatasetSegmentationBinary(AbstractDataset):
             image = cv2.imread(path_image)
             mask = cv2.imread(path_mask)
             mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-            mask = mask / 255
 
             transformed = self.transform_func(image=image, mask=mask)
             transformed_image = transformed['image']
             transformed_mask = transformed['mask']
+
+           # transformed_image = transformed_image / 255
+            transformed_mask = transformed_mask / 255
 
             if self.is_to_tensor:
                 transformed_image = convert_image2tensor(transformed_image)
@@ -103,6 +105,8 @@ class DatasetSegmentationBinary(AbstractDataset):
             image = cv2.imread(path_image)
             transformed = self.transform_func(image=image)
             transformed_image = transformed['image']
+
+           # transformed_image = transformed_image / 255
 
             if self.is_to_tensor:
                 transformed_image = convert_image2tensor(transformed_image)
