@@ -2,6 +2,13 @@ import cv2
 import numpy as np
 
 def cv2d_swap_color(image: np.ndarray, color_old: list, color_new: list) -> np.ndarray:
+    """
+    Swap all pixels of the given color to new color
+    :param image: numpy array representing an image
+    :param color_old: target color given as list [R,G,B]
+    :param color_new: new color given as list [R,G,B]
+    :return: new generate image
+    """
     assert len(color_old) == 3
     assert len(color_new) == 3
     if len(image.shape) == 2:

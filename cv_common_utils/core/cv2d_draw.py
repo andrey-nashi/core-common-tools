@@ -78,15 +78,22 @@ def cv2d_draw_mask_contour(image: np.ndarray, mask: np.ndarray, color: list, bru
     :param mask: mask of [H,W] with [0,X] where X any value will be treated as mask
     :param color: color to draw mask with [R,G,B]
     :param brush_size: thickness of the edges
-    :return:
+    :return: new mask
     """
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     image = cv2.drawContours(image, contours, -1, color, brush_size)
-
     return image
 
 
-def cv2d_draw_masks_horizontal(image: np.ndarray, mask_list: list, color_list: list, resize=None):
+def cv2d_draw_masks_horizontal(image: np.ndarray, mask_list: list, color_list: list, resize=None) -> np.ndarray:
+    """
+    Generate a new image like [image, (image & mask), (image & mask), ... ] - image and image with overlayed masks.
+    :param image: a numpy image
+    :param mask_list: list of masks [<np.ndarray>, <np.ndarray>, ... ]
+    :param color_list: list of colors [[R,G,B]] for each mask
+    :param resize: resolution of (W,H), if not None will forcefully resize input image and masks
+    :return: numpy array of [H, N*W]
+    """
     concatenation_list = []
 
     if resize is not None:
@@ -102,7 +109,6 @@ def cv2d_draw_masks_horizontal(image: np.ndarray, mask_list: list, color_list: l
         if len(mask.shape) == 3:
             mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
         r, mask = cv2.threshold(mask, 128, 255, cv2.THRESH_BINARY)
-
 
         image_out = cv2d_draw_mask(np.copy(image), mask, color_list[i])
         image_out = cv2d_draw_mask_contour(image_out, mask, color_list[i])

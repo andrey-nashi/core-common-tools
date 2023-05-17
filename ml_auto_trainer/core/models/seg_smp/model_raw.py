@@ -28,9 +28,19 @@ class SmpModel(nn.Module):
 
     def __init__(self, model_name: str, encoder_name: str, in_channels: int, out_classes: int,
                  encoder_weights: str = MODEL_WEIGHTS_IMAGENET, activation: str = None):
+
+        """
+        :param model_name: model architecture one of MODEL_* defined in this class
+        :param encoder_name: encoder architecture (see full list of supported encoders in smp repository)
+        :param in_channels: number of input channels, set to 3 for RGB image
+        :param out_classes: number of output classes, set to 1 for binary segmentation
+        :param encoder_weights: weight policy select one of MODEL_WEIGHTS_* defined in this class
+        :param activation: activation function, select one of MODEL_ACTIVATION_* defined in this class
+        """
+
         model_obj = self._MODEL_TABLE[model_name]
         self.model = model_obj(encoder_name=encoder_name, in_channels=in_channels, classes=out_classes,
-                                encoder_weights=encoder_weights, activation=activation)
+                               encoder_weights=encoder_weights, activation=activation)
 
 
     def forward(self, x: torch.Tensor):
