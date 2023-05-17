@@ -20,7 +20,7 @@ class DatasetSegmentationBinary(AbstractDataset):
     NORMALIZE_255 = 1
     NORMALIZE_MINMAX = 2
 
-    def __init__(self, transform_func: callable = None, norm_image_mode: bool = True, norm_mask_mode: bool = True):
+    def __init__(self, transform_func: callable = None, norm_image_mode: bool = NORMALIZE_255, norm_mask_mode: bool = NORMALIZE_255):
         """
         Dataset for binary segmentation task where mask is given as 0/255 image
         :param transform_func: should be a callable method with arguments 'image' and 'mask'
@@ -116,7 +116,7 @@ class DatasetSegmentationBinary(AbstractDataset):
             transformed = self.transform_func(image=image)
             transformed_image = transformed[self.BK_IMAGE]
 
-            transformed_image = normalize_numpy(transformed_image, self.norm_mask_mode)
+            transformed_image = normalize_numpy(transformed_image, self.norm_image_mode)
 
             if self.is_to_tensor:
                 transformed_image = convert_image2tensor(transformed_image)

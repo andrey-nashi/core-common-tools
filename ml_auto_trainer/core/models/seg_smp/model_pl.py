@@ -3,11 +3,13 @@ import torch
 import segmentation_models_pytorch as smp
 import pytorch_lightning as pl
 
+from .model_raw import SmpModel
+
 class SmpModel_Light(pl.LightningModule):
-    def __init__(self, smp_nn_model: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable = None, is_save_log: bool = True, activation: str =None):
+    def __init__(self, model_name: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable = None, is_save_log: bool = True, activation: str =None):
         """
         Initialize segmentation model with given architecture, encoder, number of channels.
-        :param smp_nn_model: model architecture [Unet, UnetPlusPlus, MAnet, Linknet, FPN, PSPNet, DeepLabV3, DeepLabV3Plus, PAN]
+        :param model_name: model architecture [Unet, UnetPlusPlus, MAnet, Linknet, FPN, PSPNet, DeepLabV3, DeepLabV3Plus, PAN]
         :param encoder_name: encoder for the given model. See https://github.com/qubvel/segmentation_models.pytorch for more details.
         Recommended encoders are
         * resnet18, resnet34, resnet50, resnet101, resnet152
@@ -24,7 +26,8 @@ class SmpModel_Light(pl.LightningModule):
         self.save_hyperparameters(ignore=["loss_func", "is_save_log"])
 
         # ---- Create smp model with given parameters
-        self.model = smp.create_model(smp_nn_model, encoder_name=encoder_name, in_channels=in_channels, classes=out_classes, activation=activation)
+        self.model = SmpModel(model_name=model_name, encoder_name=encoder_name, in_channels=in_channels,
+                              out_classes=out_classes, activation=activation)
 
         # ---- Initialize imagenet like mean and standard deviation, will not work for non-3 channels _most_likely_
         # ---- FIXME add non-3 channel support
@@ -37,7 +40,7 @@ class SmpModel_Light(pl.LightningModule):
         self.is_save_log = is_save_log
         self.cache = []
 
-    def forward(self, image):
+    def forward(self, image: torch.Tensor):
         # ---- This check is useful for testing
         if image.device != self.device:
             image = image.to(self.device)
@@ -71,7 +74,6 @@ class SmpModel_Light(pl.LightningModule):
                 "tn": tn.detach().cpu()
             }
             self.cache.append(log_message)
-        print(loss)
         return loss
 
     def shared_epoch_end(self, stage):
@@ -112,7 +114,7 @@ class SmpModel_Light(pl.LightningModule):
         return self.shared_epoch_end("valid")
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.001)
+        return torch.optim.Adam(self.model.parameters(), lr=0.001)
 
 
     def predict(self, image: np.ndarray) -> np.ndarray:

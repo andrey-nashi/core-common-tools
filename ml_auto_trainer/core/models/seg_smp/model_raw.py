@@ -37,7 +37,7 @@ class SmpModel(nn.Module):
         :param encoder_weights: weight policy select one of MODEL_WEIGHTS_* defined in this class
         :param activation: activation function, select one of MODEL_ACTIVATION_* defined in this class
         """
-
+        super().__init__()
         model_obj = self._MODEL_TABLE[model_name]
         self.model = model_obj(encoder_name=encoder_name, in_channels=in_channels, classes=out_classes,
                                encoder_weights=encoder_weights, activation=activation)

@@ -88,9 +88,9 @@ class outconv(nn.Module):
 
 #-----------------------------------------------------------------------------------------
 
-class UNet(nn.Module):
+class UpashUnet(nn.Module):
     def __init__(self, n_channels, n_classes, bilinear=True):
-        super(UNet, self).__init__()
+        super(UpashUnet, self).__init__()
         self.inc = inconv(n_channels, 64)
         self.down1 = down(64, 128)
         self.down2 = down(128, 256)
@@ -116,9 +116,9 @@ class UNet(nn.Module):
         return F.sigmoid(x)
 
 
-class UNet2(nn.Module):
+class UpashUnet2(nn.Module):
     def __init__(self, n_channels, n_classes, bilinear=True):
-        super(UNet2, self).__init__()
+        super(UpashUnet2, self).__init__()
         self.inc = inconv(n_channels, 64)
         self.down1 = down(64, 128)
         self.down2 = down(128, 256)
@@ -150,9 +150,9 @@ class UNet2(nn.Module):
         return F.sigmoid(x)
 
 
-class UNet3(nn.Module):
+class UpashUnet3(nn.Module):
     def __init__(self, n_channels, n_classes, bilinear=True):
-        super(UNet3, self).__init__()
+        super(UpashUnet3, self).__init__()
         self.inc = inconv(n_channels, 64)
         self.down1 = down(64, 128)
         self.down2 = down(128, 256)

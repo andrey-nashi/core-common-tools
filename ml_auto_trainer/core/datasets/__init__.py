@@ -1,1 +1,1 @@
-from .ds_segmentation import DatasetSegmentationBinary
+from .ds_seg_bin import DatasetSegmentationBinary
