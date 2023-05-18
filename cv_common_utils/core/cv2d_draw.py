@@ -116,3 +116,39 @@ def cv2d_draw_masks_horizontal(image: np.ndarray, mask_list: list, color_list: l
         concatenation_list.append(image_out)
 
     return cv2.hconcat(concatenation_list)
+
+
+def cv2d_draw_error_map(mask_gt: np.array, mask_pr: np.array, color_table: dict = {"tp": [0, 255, 0], "fp": [0, 0, 255], "fn": [255, 0, 0]}):
+    """
+    Generate an error map for the specific ground truth and predicted masks.
+    Resolution of the masks should be the same.
+    :param mask_gt: an opencv image, binary mask (0, 255)
+    :param mask_pr: an opencv image, binary mask (0, 255)
+    :param color_table: table of colors corresponding to TP, FP, FN given as dictionary
+    {"tp": [R,G,B], "fp": [R,G,B], "fn": [R,G,B]}
+    :return: an opencv image, the error map
+    """
+    if mask_gt.shape != mask_pr.shape:
+        return None
+
+    resolution = mask_gt.shape
+    error_map = np.zeros((resolution[0], resolution[1], 3), dtype=np.uint8)
+
+    # ---- Below encode the TP,FP,FN with BGR colors
+    # ---- TP
+    xy = np.argwhere(np.bitwise_and(mask_pr == 255, mask_gt == 255)).T
+    error_map[xy[0], xy[1], 0] = color_table["tp"][2]
+    error_map[xy[0], xy[1], 1] = color_table["tp"][1]
+    error_map[xy[0], xy[1], 2] = color_table["tp"][0]
+    # ---- FP
+    xy = np.argwhere(np.bitwise_and(mask_pr == 255, mask_gt == 0)).T
+    error_map[xy[0], xy[1], 0] = color_table["fp"][2]
+    error_map[xy[0], xy[1], 1] = color_table["fp"][1]
+    error_map[xy[0], xy[1], 2] = color_table["fp"][0]
+    # ---- FN
+    xy = np.argwhere(np.bitwise_and(mask_pr == 0, mask_gt == 255)).T
+    error_map[xy[0], xy[1], 0] = color_table["fn"][2]
+    error_map[xy[0], xy[1], 1] = color_table["fn"][1]
+    error_map[xy[0], xy[1], 2] = color_table["fn"][0]
+
+    return error_map
