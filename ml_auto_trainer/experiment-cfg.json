@@ -1,0 +1,26 @@
+{
+  "train_cfg": {
+      "dataset_train": "X",
+      "dataset_train_args": "X",
+
+      "dataset_valid": "X",
+      "dataset_valid_args": "X",
+
+      "transform_train": "X",
+      "transform_valid": "X",
+
+      "model_name": "X",
+      "model_args": "X",
+
+      "engine": {
+          "batch_size": 0,
+          "epochs": 0,
+          "threads": 1,
+          "device": "gpu"
+      }
+  },
+
+  "test_cfg": {
+
+  }
+}
