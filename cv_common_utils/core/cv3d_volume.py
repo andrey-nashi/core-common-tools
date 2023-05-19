@@ -46,6 +46,7 @@ class Volume:
         s = v.shape
         self.array = np.ones((s[0], s[1], s[2]))
 
+    @property
     def shape(self):
         """
         Get shape of the volume
