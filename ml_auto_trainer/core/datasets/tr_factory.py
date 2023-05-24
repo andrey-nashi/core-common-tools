@@ -26,7 +26,7 @@ class TransformationFactory:
 
     @staticmethod
     def create_transform(transformation_list: list):
-        if len(transformation_list): return None
+        if len(transformation_list) == 0: return None
 
         serialized_cfg = TransformationFactory._TEMPLATE_S.copy()
         tl = serialized_cfg["transform"]["transforms"]

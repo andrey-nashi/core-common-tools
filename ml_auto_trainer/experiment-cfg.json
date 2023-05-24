@@ -2,31 +2,36 @@
   "train_cfg": {
       "dataset_train": {
         "name": "DatasetSegmentationBinary",
-        "path_json": "/home/andrey/Development/core-common-tools/data/datasets/seg-bin-train.json",
-        "path_root": "/home/andrey/Development/core-common-tools/data",
+        "path_json": "/home/indra/Development/core-common-tools/data/datasets/seg-bin-train.json",
+        "path_root": "/home/indra/Development/core-common-tools/data",
         "args": {}
       },
 
       "dataset_validation": {
         "name": "DatasetSegmentationBinary",
-        "path_json": "/home/andrey/Development/core-common-tools/data/datasets/seg-bin-val.json",
-        "path_root": "/home/andrey/Development/core-common-tools/data",
+        "path_json": "/home/indra/Development/core-common-tools/data/datasets/seg-bin-val.json",
+        "path_root": "/home/indra/Development/core-common-tools/data",
         "args": {}
       },
 
-
       "transform_train": [
-        {"name": "RandomRotate90", "args":  {}}
-
+        {"name": "RandomRotate90", "args":  {}},
+        {"name": "Flip", "args": {}},
+        {"name": "Transpose", "args": {}},
+        {"name": "ShiftScaleRotate", "args": {"shift_limit": 0.06, "scale_limit": 0.2, "rotate_limit": 45, "p": 0.2}},
+        {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
       ],
-      "transform_valid": [],
+
+      "transform_valid": [
+        {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
+      ],
 
       "model_name": "SmpModel_Light",
       "model_args": {
         "model_name": "Unet",
         "encoder_name": "resnet50",
         "in_channels": 3,
-        "out_classes": 3,
+        "out_classes": 1,
         "activation": "sigmoid"
       },
 

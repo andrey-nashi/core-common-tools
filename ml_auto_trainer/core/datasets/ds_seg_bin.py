@@ -41,7 +41,8 @@ class DatasetSegmentationBinary(AbstractDataset):
         be used as prefix to all paths in the JSON dataset
         :return: True if success, False if failed
         """
-        try:
+        if True:
+        #try:
             f = open(path_file, "r")
             data = json.load(f)
             f.close()
@@ -54,8 +55,8 @@ class DatasetSegmentationBinary(AbstractDataset):
 
                 self.samples_table.append({self.SERIAL_KEY_IMAGE: path_image, self.SERIAL_KEY_MASK: path_mask})
             return True
-        except Exception:
-            return False
+        #except Exception:
+        #    return False
 
     def save_to_json(self, path_file: str, **kwargs):
         """

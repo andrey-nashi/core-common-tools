@@ -144,15 +144,18 @@ class Experiment:
         # ---- Build transformation functions
         self.transform_train_func = TransformationFactory.create_transform(exp_cfg.transform_train)
         self.transform_valid_func = TransformationFactory.create_transform(exp_cfg.transform_valid)
+        print(self.transform_train_func)
 
         # ---- Build training dataset
         self.dataset_train = DatasetFactory.create_dataset(exp_cfg.ds_train_name, exp_cfg.ds_train_args)
-        self.dataset_train.load_from_json(exp_cfg.ds_train_path_json, exp_cfg.ds_train_path_root)
+        is_ok = self.dataset_train.load_from_json(exp_cfg.ds_train_path_json, exp_cfg.ds_train_path_root)
+        if not is_ok: raise FileNotFoundError
         self.dataset_train.set_transform_func(self.transform_train_func)
 
         # ---- Build validation dataset
         self.dataset_valid = DatasetFactory.create_dataset(exp_cfg.ds_valid_name, exp_cfg.ds_valid_args)
-        self.dataset_valid.load_from_json(exp_cfg.ds_valid_path_json, exp_cfg.ds_valid_path_root)
+        is_ok = self.dataset_valid.load_from_json(exp_cfg.ds_valid_path_json, exp_cfg.ds_valid_path_root)
+        if not is_ok: raise FileNotFoundError
         self.dataset_valid.set_transform_func(self.transform_valid_func)
 
         # ---- Build model, loss function, optimizer

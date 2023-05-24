@@ -1,7 +1,7 @@
-import json
-from core.engine.experiment import Experiment, ExperimentConfiguration
 
-import albumentations as alb
+from core.engine.experiment import Experiment, ExperimentConfiguration
+from core.engine.engine import Engine
+
 
 def run(path_experiment_json: str):
 
@@ -11,6 +11,7 @@ def run(path_experiment_json: str):
     experiment = Experiment()
     experiment.build_train(experiment_cfg)
 
+    Engine.run_trainer(experiment)
 
 
 if __name__ == '__main__':
