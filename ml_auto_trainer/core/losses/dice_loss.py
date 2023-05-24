@@ -22,3 +22,6 @@ class DiceLoss(nn.Module):
              predictions.sum() + targets.sum() + self.smooth
          )
          return 1 - dice
+
+
+

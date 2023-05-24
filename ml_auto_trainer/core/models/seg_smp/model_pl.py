@@ -6,6 +6,7 @@ import pytorch_lightning as pl
 from .model_raw import SmpModel
 
 class SmpModel_Light(pl.LightningModule):
+
     def __init__(self, model_name: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable = None, is_save_log: bool = True, activation: str =None):
         """
         Initialize segmentation model with given architecture, encoder, number of channels.
@@ -36,9 +37,19 @@ class SmpModel_Light(pl.LightningModule):
         self.register_buffer("mean", torch.tensor(params["mean"]).view(1, 3, 1, 1))
         self.loss_func = loss_func
 
+        self.optimizer = torch.optim.Adam
+        self.optimizer_lr = 0.001
+
         # ---- Cache is an internal variable for logging performance
         self.is_save_log = is_save_log
         self.cache = []
+
+    def set_loss_func(self, loss_func: callable):
+        self.loss_func = loss_func
+
+    def set_optimizer(self, optimizer: callable, lr: float):
+        self.optimizer = optimizer
+        self.optimizer_lr = lr
 
     def forward(self, image: torch.Tensor):
         # ---- This check is useful for testing
@@ -114,7 +125,7 @@ class SmpModel_Light(pl.LightningModule):
         return self.shared_epoch_end("valid")
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=0.001)
+        return self.optimizer(self.model.parameters(), self.optimizer_lr)
 
 
     def predict(self, image: np.ndarray) -> np.ndarray:
