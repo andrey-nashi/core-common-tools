@@ -14,6 +14,7 @@ class ExperimentConfiguration:
 
     CFG_DS_TRAIN = "dataset_train"
     CFG_DS_VALID = "dataset_validation"
+    CFG_DS_TEST = "dataset_test"
     CFG_DS_NAME = "name"
     CFG_DS_PATH_JSON = "path_json"
     CFG_DS_PATH_ROOT = "path_root"
@@ -21,6 +22,7 @@ class ExperimentConfiguration:
 
     CFG_TRANSFORM_TRAIN = "transform_train"
     CFG_TRANSFORM_VALID = "transform_valid"
+    CFG_TRANSFORM_TEST = "transform_test"
 
     CFG_LOSS = "loss_func"
     CFG_LOSS_NAME = "name"
@@ -28,12 +30,14 @@ class ExperimentConfiguration:
 
     CFG_MODEL_NAME = "model_name"
     CFG_MODEL_ARGS = "model_args"
+    CFG_MODEL_CHECKPOINT = "model_checkpoint"
 
     CFG_ENGINE = "engine"
     CFG_ENGINE_BATCH_SIZE = "batch_size"
     CFG_ENGINE_EPOCHS = "epochs"
     CFG_ENGINE_THREADS = "threads"
     CFG_ENGINE_DEVICE = "device"
+    CFG_ENGINE_CHECKPOINT = "checkpoint_path"
 
     @staticmethod
     def _exception_handler(func: callable):
@@ -48,7 +52,9 @@ class ExperimentConfiguration:
     def __init__(self):
         self.is_train = False
         self.is_test = False
+        self.cfg_source = None
 
+        # ---- Training parameters
         self.ds_train_name = None
         self.ds_train_path_json = None
         self.ds_train_path_root = None
@@ -71,6 +77,19 @@ class ExperimentConfiguration:
         self.engine_epochs = None
         self.engine_threads = None
         self.engine_device = None
+        self.engine_checkpoint = None
+
+        # ---- Testing parameters
+        self.ds_test_name = None
+        self.ds_test_path_json = None
+        self.ds_test_path_root = None
+        self.ds_test_args = None
+
+        self.transform_test = None
+
+        self.model_name_t = None
+        self.model_args_t = None
+        self.model_checkpoint = None
 
     @_exception_handler
     def load_from_file(self, path_file: str):
@@ -80,6 +99,8 @@ class ExperimentConfiguration:
         f = open(path_file, "r")
         data = json.load(f)
         f.close()
+
+        self.cfg_source = data
 
         # ---- Training configuration
         if self.CFG_TRAIN in data:
@@ -115,17 +136,33 @@ class ExperimentConfiguration:
             self.engine_epochs = cfg_train[self.CFG_ENGINE][self.CFG_ENGINE_EPOCHS]
             self.engine_threads = cfg_train[self.CFG_ENGINE][self.CFG_ENGINE_THREADS]
             self.engine_device = cfg_train[self.CFG_ENGINE][self.CFG_ENGINE_DEVICE]
+            self.engine_checkpoint = cfg_train[self.CFG_ENGINE][self.CFG_ENGINE_CHECKPOINT]
 
         # ---- Test configuration
         if self.CFG_TEST in data:
             self.is_test = True
             cfg_test = data[self.CFG_TEST]
 
+            # --- Test dataset
+            self.ds_test_name = cfg_test[self.CFG_DS_TEST][self.CFG_DS_NAME]
+            self.ds_test_path_json = cfg_test[self.CFG_DS_TEST][self.CFG_DS_PATH_JSON]
+            self.ds_test_path_root = cfg_test[self.CFG_DS_TEST][self.CFG_DS_PATH_ROOT]
+            self.ds_test_args = cfg_test[self.CFG_DS_TEST][self.CFG_DS_ARGS]
+
+            self.transform_test = cfg_test[self.CFG_TRANSFORM_TEST]
+
+            self.model_name_t = cfg_test[self.CFG_MODEL_NAME]
+            self.model_args_t = cfg_test[self.CFG_MODEL_ARGS]
+            self.model_checkpoint = cfg_test[self.CFG_MODEL_CHECKPOINT]
+
 
 class Experiment:
 
     def __init__(self):
-        self.is_train_built = False
+        self.cfg_source = None
+
+        # ---- Training environment
+        self.is_built_train = False
         self.dataset_train = None
         self.dataset_valid = None
         self.transform_train_func = None
@@ -137,14 +174,21 @@ class Experiment:
         self.engine_threads = None
         self.engine_epochs = None
         self.engine_device = None
+        self.engine_checkpoint = None
+
+        # ---- Testing environment
+        self.is_built_test = False
+        self.dataset_test = None
+        self.transform_test_func = None
+        self.model = None
 
     def build_train(self, exp_cfg: ExperimentConfiguration):
+        self.cfg_source = exp_cfg.cfg_source
         if not exp_cfg.is_train: return
 
         # ---- Build transformation functions
         self.transform_train_func = TransformationFactory.create_transform(exp_cfg.transform_train)
         self.transform_valid_func = TransformationFactory.create_transform(exp_cfg.transform_valid)
-        print(self.transform_train_func)
 
         # ---- Build training dataset
         self.dataset_train = DatasetFactory.create_dataset(exp_cfg.ds_train_name, exp_cfg.ds_train_args)
@@ -168,8 +212,25 @@ class Experiment:
         self.engine_threads = exp_cfg.engine_threads
         self.engine_epochs = exp_cfg.engine_epochs
         self.engine_device = exp_cfg.engine_device
+        self.engine_checkpoint = exp_cfg.engine_checkpoint
 
-        self.is_train_built = True
+        self.is_built_train = True
 
     def build_test(self, exp_cfg: ExperimentConfiguration):
+        self.cfg_source = exp_cfg.cfg_source
         if not exp_cfg.is_test: return
+
+        # ---- Build transformation function
+        self.transform_test_func = TransformationFactory.create_transform(exp_cfg.transform_test)
+
+        # ---- Build test dataset
+        self.dataset_test = DatasetFactory.create_dataset(exp_cfg.ds_test_name, exp_cfg.ds_test_args)
+        is_ok = self.dataset_test.load_from_json(exp_cfg.ds_test_path_json, exp_cfg.ds_test_path_root)
+        if not is_ok: raise FileNotFoundError
+        self.dataset_test.set_transform_func(self.transform_test_func)
+
+        # ---- Build model from checkpoint
+        self.model = ModelFactory.create_model(exp_cfg.model_name, exp_cfg.model_args)
+        self.model.load_from_checkpoint(exp_cfg.model_checkpoint)
+
+        self.is_built_test = True

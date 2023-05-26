@@ -43,12 +43,33 @@
       "engine": {
           "batch_size": 4,
           "epochs": 1,
-          "threads": 1,
-          "device": "gpu"
+          "threads": 4,
+          "device": "gpu",
+          "checkpoint_path": "lightning_out/exp-001"
       }
   },
 
   "test_cfg": {
 
+      "dataset_test": {
+        "name": "DatasetSegmentationBinary",
+        "path_json": "/home/indra/Development/core-common-tools/data/datasets/seg-bin-val.json",
+        "path_root": "/home/indra/Development/core-common-tools/data",
+        "args": {}
+      },
+
+      "transform_test": [
+        {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
+      ],
+
+      "model_name": "SmpModel_Light",
+      "model_args": {
+        "model_name": "Unet",
+        "encoder_name": "resnet50",
+        "in_channels": 3,
+        "out_classes": 1,
+        "activation": "sigmoid"
+      },
+      "model_checkpoint": "lightning_out/exp-001/model-weights.ckpt"
   }
 }
