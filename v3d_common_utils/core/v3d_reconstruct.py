@@ -43,15 +43,19 @@ def v3d_reconstruct_pcd(image: np.ndarray, depth: np.ndarray, fx: float = None, 
     o3_image = o3d.geometry.Image(image_rgb)
     o3_depth = o3d.geometry.Image(depth)
 
-    rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(o3_image, o3_depth, depth_trunc=depth_threshold, convert_rgb_to_intensity=False)
+    if depth_threshold is not None:
+        rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(o3_image, o3_depth, depth_trunc=depth_threshold, convert_rgb_to_intensity=False)
+    else:
+        rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(o3_image, o3_depth, convert_rgb_to_intensity=False)
 
     if fx is None and fy is None and cx is None and cy is None:
         pinhole_intrinsic = o3d.camera.PinholeCameraIntrinsic()
     else:
         pinhole_intrinsic = o3d.camera.PinholeCameraIntrinsic(width=w, height=h, fx=fx, fy=fy, cx=cx, cy=cy)
 
-    pcd = o3d.geometry.create_point_cloud_from_rgbd_image(rgbd, pinhole_intrinsic)
+    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, pinhole_intrinsic)
     return pcd
+
 
 
 def v3d_reconstruct_pcd_scene(rgbd_data: list, camera_extrinsic_data: list, camera_intrinsic_data: list = None) -> o3d.geometry.PointCloud:
