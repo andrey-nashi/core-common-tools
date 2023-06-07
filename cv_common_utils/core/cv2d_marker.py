@@ -118,10 +118,6 @@ def cv2d_detect_aruco_markers_pose(image: np.ndarray, marker_type: str, marker_s
         marker_rotation = vector_rotation.tolist()
         marker_translation = vector_translation.tolist()
         output_data.append({"dict": aruco_dict, "id": marker_index, "xy": marker_xy, "rot": marker_rotation, "tr": marker_translation})
-
-        print(vector_rotation)
-
-
         cv2.drawFrameAxes(output_image, cam_matrix, cam_distortion, vector_rotation, vector_translation, 5);
 
     return output_image, output_data
