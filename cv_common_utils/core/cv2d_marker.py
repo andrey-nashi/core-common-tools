@@ -28,7 +28,14 @@ TABLE_ARUCO_MARKERS = {
 }
 
 def cv2d_detect_aruco_markers(image: np.ndarray, marker_type=None):
-
+    """
+    Detect ARUCO marker, return image with painted markers and XY coordinates
+    :param image: numpy array the RGB image
+    :param marker_type: name of the marker type (see the table), if None is given
+    then attempt to parse through all dictionaries
+    :return: image, list of dictionaries - found markers
+    [<image>, [{"dict": <dict_id>, "id": <marker_id>, "xy": [[x, y], ... ]}]]
+    """
     if marker_type is not None and marker_type in TABLE_ARUCO_MARKERS:
         aruco_dict = TABLE_ARUCO_MARKERS[marker_type]
         aruco_detection_list = [aruco_dict]
@@ -36,7 +43,7 @@ def cv2d_detect_aruco_markers(image: np.ndarray, marker_type=None):
         aruco_detection_list = [TABLE_ARUCO_MARKERS[x] for x in TABLE_ARUCO_MARKERS]
 
     output_image = image.copy()
-    output_polygons = []
+    output_data = []
 
     for aruco_dict in aruco_detection_list:
         aruco_marker_dict = cv2.aruco.getPredefinedDictionary(aruco_dict)
@@ -44,20 +51,80 @@ def cv2d_detect_aruco_markers(image: np.ndarray, marker_type=None):
         detector = cv2.aruco.ArucoDetector(aruco_marker_dict, aruco_marker_parameters)
         (corners, ids, rejected) = detector.detectMarkers(image)
 
-        if len(corners):
-            print(corners.shape)
+        if len(corners) != 0:
             output_image = aruco.drawDetectedMarkers(output_image, corners, ids)
-            for polygon in corners:
-                print(polygon[0].shape, polygon[1])
+            for i in range(0, len(corners)):
+                marker_index = ids[i][0].tolist()
+                marker_xy = corners[i][0].astype(np.uint32).tolist()
+                output_data.append({"dict": aruco_dict, "id": marker_index, "xy": marker_xy})
 
-    return output_image, output_polygons
+    return output_image, output_data
 
-def cv2d_detect_aruco_markers_pose(image: np.ndarray, marker_type, marker_size, cam_matrix, cam_distortion):
+def cv2d_detect_aruco_markers_pose(image: np.ndarray, marker_type: str, marker_size: float, cam_matrix: list = None, cam_distortion: list = None):
+    """
+    Detect markers on an image, estimate their pose
+    :param image: numpy array the RGB image
+    :param marker_type: name of the marker type (see the table), if None is given
+    :param marker_size: size of the marker in cm
+    :param cam_matrix: camera matrix list of [[fx, 0, cx],[0, fy, cy], [0, 0, 1]]
+    :param cam_distortion: camera distortion vector of size (4,1)
+    :return: image with painted markers, pose and marker info
+    """
+
+    # ---- Generate camera matrix and distortion vector if not given
+    if cam_matrix is None:
+        size = img.shape
+        focal_length = size[1]
+        center = (size[1] / 2, size[0] / 2)
+        cam_matrix = np.array(
+            [[focal_length, 0, center[0]],
+             [0, focal_length, center[1]],
+             [0, 0, 1]], dtype="double"
+        )
+    else:
+        cam_matrix = np.array(cam_matrix)
+
+    if cam_distortion is None:
+        cam_distortion = np.zeros((4, 1))
+    else:
+        cam_distortion = np.array(cam_distortion)
+
+    # ---- Marker in 3D
+    marker_3d = [
+        [-marker_size / 2.0, marker_size / 2.0, 0],
+        [marker_size / 2.0, marker_size / 2.0, 0],
+        [marker_size / 2.0, -marker_size / 2.0, 0],
+        [-marker_size / 2.0, -marker_size / 2.0, 0],
+    ]
+    marker_3d = np.array(marker_3d)
+
+    # ---- Detect
     aruco_dict = TABLE_ARUCO_MARKERS[marker_type]
     aruco_marker_dict = cv2.aruco.getPredefinedDictionary(aruco_dict)
     aruco_marker_parameters = cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector(aruco_marker_dict, aruco_marker_parameters)
     (corners, ids, rejected) = detector.detectMarkers(image)
 
+    output_image = image.copy()
+    output_data = []
+
+    # ---- Compute pose & draw
+    output_image = aruco.drawDetectedMarkers(output_image, corners, ids)
     for i in range(0, len(corners)):
-        rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners[i], marker_size, cam_matrix, cam_distortion)
+
+        success, vector_rotation, vector_translation = cv2.solvePnP(marker_3d, corners[i][0], cam_matrix, cam_distortion, flags=0)
+        marker_index = ids[i][0].tolist()
+        marker_xy = corners[i][0].astype(np.uint32).tolist()
+        marker_rotation = vector_rotation.tolist()
+        marker_translation = vector_translation.tolist()
+        output_data.append({"dict": aruco_dict, "id": marker_index, "xy": marker_xy, "rot": marker_rotation, "tr": marker_translation})
+
+        print(vector_rotation)
+
+
+        cv2.drawFrameAxes(output_image, cam_matrix, cam_distortion, vector_rotation, vector_translation, 5);
+
+    return output_image, output_data
+
+
+
