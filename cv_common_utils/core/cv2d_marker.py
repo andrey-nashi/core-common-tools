@@ -73,7 +73,7 @@ def cv2d_detect_aruco_markers_pose(image: np.ndarray, marker_type: str, marker_s
 
     # ---- Generate camera matrix and distortion vector if not given
     if cam_matrix is None:
-        size = img.shape
+        size = image.shape
         focal_length = size[1]
         center = (size[1] / 2, size[0] / 2)
         cam_matrix = np.array(
@@ -121,6 +121,3 @@ def cv2d_detect_aruco_markers_pose(image: np.ndarray, marker_type: str, marker_s
         cv2.drawFrameAxes(output_image, cam_matrix, cam_distortion, vector_rotation, vector_translation, 5);
 
     return output_image, output_data
-
-
-
