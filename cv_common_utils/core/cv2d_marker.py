@@ -118,6 +118,16 @@ def cv2d_detect_aruco_markers_pose(image: np.ndarray, marker_type: str, marker_s
         marker_rotation = vector_rotation.tolist()
         marker_translation = vector_translation.tolist()
         output_data.append({"dict": aruco_dict, "id": marker_index, "xy": marker_xy, "rot": marker_rotation, "tr": marker_translation})
-        cv2.drawFrameAxes(output_image, cam_matrix, cam_distortion, vector_rotation, vector_translation, 5);
+        cv2.drawFrameAxes(output_image, cam_matrix, cam_distortion, vector_rotation, vector_translation, 0.05);
 
     return output_image, output_data
+
+
+path = "/home/andrey/test-ix.png"
+image = cv2.imread(path)
+cam_matrix =  [[533.19, 0.0, 640.77], [0.0, 533.42, 364.838], [0.0, 0.0, 1.0]]
+cam_d = [-0.0564249, 0.0298475, -0.0114727, -7.10619e-05, -0.000308677]
+image, x = cv2d_detect_aruco_markers_pose(image, "5X5_50", 0.03, cam_matrix, cam_d)
+cv2.drawFrameAxes(image, np.array(cam_matrix), np.array(cam_d), np.array([0.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), 0.05)
+print(x)
+cv2.imwrite("/home/andrey/test-out.png", image)
