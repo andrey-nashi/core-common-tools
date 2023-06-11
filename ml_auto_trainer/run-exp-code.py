@@ -1,3 +1,5 @@
+import os.path
+
 import cv2
 import torch
 import albumentations as alb
@@ -13,6 +15,8 @@ path_json_train = "./examples/data/datasets/seg-bin-train.json"
 path_dir_root = "./examples/data"
 path_json_val = "./examples/data/datasets/seg-bin-val.json"
 
+
+#---------------------------------------------------------------------------------------
 transform_train = alb.Compose([
     alb.RandomRotate90(),
     alb.Flip(),
@@ -32,46 +36,22 @@ train_dataloader = DataLoader(dataset_train, batch_size=4, shuffle=True, num_wor
 valid_dataloader = DataLoader(dataset_valid, batch_size=4, shuffle=False, num_workers=4)
 
 loss_f = smp.losses.DiceLoss("binary", from_logits=False)
-#model = smp.Unet(encoder_name="resnet50", in_channels=3, classes=1, activation="sigmoid")
 model = SmpModel_Light(model_name="Unet", encoder_name="resnet50", in_channels=3, out_classes=1, loss_func=loss_f, activation="sigmoid")
 model.set_optimizer(torch.optim.SGD, lr=0.01)
-#opt = torch.optim.SGD(model.parameters(),lr=0.01)
+
 
 trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=1)
 trainer.fit(model, train_dataloaders=train_dataloader, val_dataloaders=valid_dataloader)
-"""
-model = model.cuda()
-for epoch in range(0, 1):
-    print("EPOCH", epoch)
-    model.train()
-    for batch in train_dataloader:
-        opt.zero_grad()
-        image = batch[0].cuda()
-        mask_gt = batch[1].cuda()
-        mask_pr = model(image)
-        loss = loss_f(mask_pr, mask_gt)
-        loss.backward()
-        opt.step()
+#---------------------------------------------------------------------------------------
 
-    model.eval()
-    running_loss = 0
-    index = 0
-    with torch.no_grad():
-        for batch in valid_dataloader:
-            image = batch[0].cuda()
-            mask_gt = batch[1].cuda()
-            mask_pr = model(image)
-            loss = loss_f(mask_pr, mask_gt)
-            index += 1
-            running_loss += loss
 
-    print("val, los", running_loss /index)
-"""
 model.cuda()
 model.eval()
 with torch.no_grad():
     index_g = 0
+
     for batch in valid_dataloader:
+
         image = batch[0].cuda()
         mask_gt = batch[1].cuda()
         mask_pr = model(image)
@@ -81,8 +61,10 @@ with torch.no_grad():
 
         for bid in range(0, b):
             mask_out = X[bid][0] * 255
-            cv2.imwrite("./lightning_out/exp-00x/img-" + str(index_g) + ".png", mask_out)
+            info = dataset_valid.get_data_source(index_g)
+            print(info)
+            name = os.path.basename(info[0]["mask"])
+            cv2.imwrite("./lightning_out/exp-00x/" + name, mask_out)
 
             index_g += 1
-
 

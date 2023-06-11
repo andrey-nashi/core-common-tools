@@ -188,7 +188,7 @@ class Experiment:
         self.dataset_valid = None
         self.transform_train_func = None
         self.transform_valid_func = None
-        self.model = None
+        self.model_train = None
         self.loss_func = None
         self.optimizer = None
         self.engine_batch_size = None
@@ -201,7 +201,7 @@ class Experiment:
         self.is_built_test = False
         self.dataset_test = None
         self.transform_test_func = None
-        self.model = None
+        self.model_test = None
         self.engine_batch_size_ts = None
         self.processors = None
 
@@ -230,9 +230,9 @@ class Experiment:
         self.loss_func = LossFactory.create_loss_function(exp_cfg.loss_name, exp_cfg.loss_args)
         self.optimizer = OptimizerFactory.get_optimizer(exp_cfg.optimizer_name)
 
-        self.model = ModelFactory.create_model(exp_cfg.model_name, exp_cfg.model_args)
-        self.model.set_loss_func(self.loss_func)
-        self.model.set_optimizer(self.optimizer, exp_cfg.optimizer_lr)
+        self.model_train = ModelFactory.create_model(exp_cfg.model_name, exp_cfg.model_args)
+        self.model_train.set_loss_func(self.loss_func)
+        self.model_train.set_optimizer(self.optimizer, exp_cfg.optimizer_lr)
 
         self.engine_batch_size = exp_cfg.engine_batch_size
         self.engine_threads = exp_cfg.engine_threads
@@ -256,8 +256,8 @@ class Experiment:
         self.dataset_test.set_transform_func(self.transform_test_func)
 
         # ---- Build model from checkpoint
-        self.model = ModelFactory.create_model(exp_cfg.model_name, exp_cfg.model_args)
-        self.model.load_from_checkpoint(exp_cfg.model_checkpoint)
+        #self.model_test = ModelFactory.create_model(exp_cfg.model_name, exp_cfg.model_args)
+        #self.model_test.load_from_checkpoint(exp_cfg.model_checkpoint)
 
         self.engine_batch_size_ts = exp_cfg.engine_batch_size_ts
 

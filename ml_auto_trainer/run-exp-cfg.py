@@ -13,12 +13,12 @@ def run(path_experiment_json: str):
         return
 
     # ---- Experiment: train
-    #experiment = Experiment()
-    #experiment.build_train(experiment_cfg)
-    #Engine.run_trainer(experiment)
+    experiment = Experiment()
+    experiment.build_train(experiment_cfg)
+    Engine.run_trainer(experiment)
 
     # ---- Experiment: test
-    experiment = Experiment()
+    #experiment = Experiment()
     experiment.build_test(experiment_cfg)
     Engine.run_tester(experiment)
 
