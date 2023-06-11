@@ -5,7 +5,7 @@ import argparse
 
 from core.cv2d_bmask import cv2d_convert_polygons2mask
 
-#-----------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------
 class LabelmeFile:
 
     KEY_IMAGE_WIDTH = "imageWidth"
@@ -82,7 +82,7 @@ class LabelmeDataset:
     def size(self):
         return len(self.table)
 
-#-----------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------
 
 def generate_masks(path_dir_labelme: str, path_dir_mask: str):
     if not os.path.exists(path_dir_mask):
@@ -100,7 +100,7 @@ def generate_masks(path_dir_labelme: str, path_dir_mask: str):
         path_mask = os.path.join(path_dir_mask, lf_key + ".png")
         cv2.imwrite(path_mask, mask)
 
-#-----------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------
 
 INFO = (
     "Convert labelme JSON annotations into masks\n"
@@ -115,7 +115,7 @@ def parse_arguments():
     args = parser.parse_args()
     return args.i, args.o
 
-#-----------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     path_in, path_out = parse_arguments()

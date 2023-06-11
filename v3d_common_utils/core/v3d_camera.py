@@ -1,28 +1,35 @@
 import numpy as np
 class CameraParameters:
 
-    def __init__(self):
-        self.name = None
-        self.serial_number = None
+    def __init__(self, name: str = None, serial_number: str = None, fx: float = None, fy: float = None, cx: float = None, cy: float = None,
+                 k1: float = None, k2: float = None, k3: float = None, p1: float = None, p2: float = None, pose: list = None):
+        self.name = name
+        self.serial_number = serial_number
 
         # ---- Focal
-        self.fx = None
-        self.fy = None
-        self.cx = None
-        self.cy = None
+        self.fx = fx
+        self.fy = fy
+        self.cx = cx
+        self.cy = cy
 
         # ---- Distortion
-        self.k1 = None
-        self.k2 = None
-        self.k3 = None
-        self.p1 = None
-        self.p2 = None
+        self.k1 = k1
+        self.k2 = k2
+        self.k3 = k3
+        self.p1 = p1
+        self.p2 = p2
 
         # ---- Pose matrix
-        self.pose = None
+        self.pose = pose
+    @property
+    def distortion(self, is_numpy=True):
+        distortion = [self.k1, self.k2, self.k3, self.p1, self.p2]
+        if not is_numpy: return distortion
+        else: return np.asarray(distortion)
 
 
-    def get_matrix(self, is_numpy=True):
+    @property
+    def matrix_intrinsic(self, is_numpy=True):
         """
         Intrinsic camera matrix
         :return: [fx, 0, cx, 0, fy, cy, 0, 0, 1]
@@ -32,19 +39,15 @@ class CameraParameters:
                 0, self.fy, self.cy,
                 0, 0, 1
             ]
-        if not is_numpy:
-            return matrix
-        else:
-            return np.asarray(matrix).reshape(3, 3).tolist()
+        if not is_numpy: return matrix
+        else: return np.asarray(matrix).reshape(3, 3)
 
-    def get_distortion(self):
-        return [self.k1, self.k2, self.k3, self.p1, self.p2]
+    @property
+    def matrix_extrinsic(self, is_numpy=True):
+        if not is_numpy: return self.pose
+        else: return np.asarray(self.pose).reshape(4, 4)
 
-    def get_pose(self, is_numpy=True):
-        if not is_numpy:
-            return self.pose
-        else:
-            return np.asarray(self.pose).reshape(4, 4)
+
 
     def set_matrix(self, fx: float, fy: float, cx: float, cy: float):
         self.fx = fx
@@ -62,7 +65,7 @@ class CameraParameters:
     def set_pose(self, pose: list):
         self.pose = pose
 
-    def convert_uvd2xyz(self, u: int, v: int, d: int = None, d_scale = 1):
+    def convert_uvd2xyz(self, u: int, v: int, d: int = None, d_scale: float = 1):
         """
         Convert image coordinates to PCD coordinates
         :param u: image coordinate X
