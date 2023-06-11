@@ -1,9 +1,11 @@
+from .dice_loss import DiceLoss
 from .smp_loss import SmpDiceLoss
 
 
 class LossFactory:
 
     _LOSSES = [
+        DiceLoss,
         SmpDiceLoss
     ]
 

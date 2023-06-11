@@ -77,6 +77,14 @@ class AbstractDataset(Dataset):
         return new_obj
 
     # -----------------------------------------------------------------------------------------
+    def get_data_source(self, index_start: int, element_count: int = 1):
+        assert element_count >= 1
+        assert index_start >= 0
+        assert index_start < len(self.samples_table)
+
+        output = self.samples_table[index_start:index_start + element_count]
+        return output
+
 
     @property
     def size(self):

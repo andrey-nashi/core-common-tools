@@ -3,8 +3,10 @@ import json
 
 from ..losses import LossFactory
 from ..models import ModelFactory
+from ..optimizer import OptimizerFactory
 from ..datasets import DatasetFactory
 from ..datasets import TransformationFactory
+from ..processor import ProcessorFactory
 
 
 class ExperimentConfiguration:
@@ -27,6 +29,9 @@ class ExperimentConfiguration:
     CFG_LOSS = "loss_func"
     CFG_LOSS_NAME = "name"
     CFG_LOSS_ARGS = "args"
+    CFG_OPTIMIZER = "optimizer"
+    CFG_OPTIM_NAME = "name"
+    CFG_OPTIM_LR = "lr"
 
     CFG_MODEL_NAME = "model_name"
     CFG_MODEL_ARGS = "model_args"
@@ -38,6 +43,8 @@ class ExperimentConfiguration:
     CFG_ENGINE_THREADS = "threads"
     CFG_ENGINE_DEVICE = "device"
     CFG_ENGINE_CHECKPOINT = "checkpoint_path"
+
+    CFG_PROCESSORS = "processors"
 
     @staticmethod
     def _exception_handler(func: callable):
@@ -72,6 +79,8 @@ class ExperimentConfiguration:
         self.model_args = None
         self.loss_name = None
         self.loss_args = None
+        self.optimizer_name = None
+        self.optimizer_lr = None
 
         self.engine_batch_size = None
         self.engine_epochs = None
@@ -90,6 +99,10 @@ class ExperimentConfiguration:
         self.model_name_t = None
         self.model_args_t = None
         self.model_checkpoint = None
+
+        self.engine_batch_size_ts = None
+
+        self.processors = None
 
     @_exception_handler
     def load_from_file(self, path_file: str):
@@ -130,6 +143,8 @@ class ExperimentConfiguration:
             # ---- Loss
             self.loss_name = cfg_train[self.CFG_LOSS][self.CFG_LOSS_NAME]
             self.loss_args = cfg_train[self.CFG_LOSS][self.CFG_LOSS_ARGS]
+            self.optimizer_name = cfg_train[self.CFG_OPTIMIZER][self.CFG_OPTIM_NAME]
+            self.optimizer_lr = cfg_train[self.CFG_OPTIMIZER][self.CFG_OPTIM_LR]
 
             # ---- Engine
             self.engine_batch_size = cfg_train[self.CFG_ENGINE][self.CFG_ENGINE_BATCH_SIZE]
@@ -151,10 +166,16 @@ class ExperimentConfiguration:
 
             self.transform_test = cfg_test[self.CFG_TRANSFORM_TEST]
 
+            # ---- Model
             self.model_name_t = cfg_test[self.CFG_MODEL_NAME]
             self.model_args_t = cfg_test[self.CFG_MODEL_ARGS]
             self.model_checkpoint = cfg_test[self.CFG_MODEL_CHECKPOINT]
 
+            # ---- Batch based testing
+            self.engine_batch_size_ts = cfg_test[self.CFG_ENGINE][self.CFG_ENGINE_BATCH_SIZE]
+
+            # ---- Post-processing
+            self.processors = cfg_test[self.CFG_PROCESSORS]
 
 class Experiment:
 
@@ -181,6 +202,9 @@ class Experiment:
         self.dataset_test = None
         self.transform_test_func = None
         self.model = None
+        self.engine_batch_size_ts = None
+        self.processors = None
+
 
     def build_train(self, exp_cfg: ExperimentConfiguration):
         self.cfg_source = exp_cfg.cfg_source
@@ -204,9 +228,11 @@ class Experiment:
 
         # ---- Build model, loss function, optimizer
         self.loss_func = LossFactory.create_loss_function(exp_cfg.loss_name, exp_cfg.loss_args)
+        self.optimizer = OptimizerFactory.get_optimizer(exp_cfg.optimizer_name)
 
         self.model = ModelFactory.create_model(exp_cfg.model_name, exp_cfg.model_args)
         self.model.set_loss_func(self.loss_func)
+        self.model.set_optimizer(self.optimizer, exp_cfg.optimizer_lr)
 
         self.engine_batch_size = exp_cfg.engine_batch_size
         self.engine_threads = exp_cfg.engine_threads
@@ -232,5 +258,16 @@ class Experiment:
         # ---- Build model from checkpoint
         self.model = ModelFactory.create_model(exp_cfg.model_name, exp_cfg.model_args)
         self.model.load_from_checkpoint(exp_cfg.model_checkpoint)
+
+        self.engine_batch_size_ts = exp_cfg.engine_batch_size_ts
+
+        self.processors = []
+        for proc_cfg in exp_cfg.processors:
+            proc_name = proc_cfg["name"]
+            proc_methods = proc_cfg["methods"]
+            proc_args = proc_cfg["args"]
+            p = ProcessorFactory.create_processor(proc_name, proc_methods, proc_args)
+            self.processors.append(p)
+
 
         self.is_built_test = True

@@ -7,7 +7,7 @@ from .model_raw import SmpModel
 
 class SmpModel_Light(pl.LightningModule):
 
-    def __init__(self, model_name: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable = None, is_save_log: bool = True, activation: str =None):
+    def __init__(self, model_name: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable = None, is_save_log: bool = True, activation: str = None):
         """
         Initialize segmentation model with given architecture, encoder, number of channels.
         :param model_name: model architecture [Unet, UnetPlusPlus, MAnet, Linknet, FPN, PSPNet, DeepLabV3, DeepLabV3Plus, PAN]
@@ -55,7 +55,6 @@ class SmpModel_Light(pl.LightningModule):
         # ---- This check is useful for testing
         if image.device != self.device:
             image = image.to(self.device)
-        #print(image.min(), image.max(), self.mean)
         image = (image - self.mean) / self.std
         mask = self.model(image)
 
@@ -71,7 +70,6 @@ class SmpModel_Light(pl.LightningModule):
         mask_pr = self.forward(image)
         mask_pr = mask_pr.sigmoid()
         loss = self.loss_func(mask_pr, mask_gt)
-
 
         # ---- Logging of various metrics to shared cache
         if stage == "valid" and self.is_save_log:
@@ -115,7 +113,6 @@ class SmpModel_Light(pl.LightningModule):
         return self.shared_step(batch, "train")
 
     def on_train_epoch_end(self):
-        #for some reason this hook is called AFTER valid epoch
         return self.shared_epoch_end("train")
 
     def validation_step(self, batch, batch_index: int):
@@ -125,8 +122,7 @@ class SmpModel_Light(pl.LightningModule):
         return self.shared_epoch_end("valid")
 
     def configure_optimizers(self):
-        return self.optimizer(self.model.parameters(), self.optimizer_lr)
-
+        return self.optimizer(self.parameters(), self.optimizer_lr)
 
     def predict(self, image: np.ndarray) -> np.ndarray:
         """
@@ -142,10 +138,8 @@ class SmpModel_Light(pl.LightningModule):
         if self.training: self.eval()
         with torch.no_grad():
             model_output = self.forward(transformed_image)
-            model_output = model_output[0][0].sigmoid().cpu().numpy()
-            model_output = (model_output > 0.5) * 255
+            model_output = model_output[0][0].cpu().numpy()
+            model_output = model_output * 255
 
         model_output = model_output.astype(np.uint8)
-        print("-----------")
-        print(model_output, ">>>>>>>>>>>>>>")
         return model_output

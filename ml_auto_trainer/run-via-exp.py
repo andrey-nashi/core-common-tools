@@ -10,14 +10,15 @@ def run(path_experiment_json: str):
     experiment_cfg.load_from_file(path_experiment_json)
 
     # ---- Experiment: train
-    #experiment = Experiment()
-    #experiment.build_train(experiment_cfg)
-    #Engine.run_trainer(experiment)
+    experiment = Experiment()
+    experiment.build_train(experiment_cfg)
+    Engine.run_trainer(experiment)
 
     # ---- Experiment: test
     experiment = Experiment()
     experiment.build_test(experiment_cfg)
+    Engine.run_tester(experiment)
 
 if __name__ == '__main__':
-    path = "./experiment-cfg.json"
+    path = "examples/experiment-cfg.json"
     run(path)

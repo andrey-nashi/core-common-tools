@@ -75,9 +75,9 @@ def run_test(path_json_val, path_dir_root, path_model):
 
 
 
-path_json_train = "../data/datasets/seg-bin-train.json"
-path_json_val = "../data/datasets/seg-bin-val.json"
-path_dir_root = "/home/indra/Development/core-common-tools/data"
+path_json_train = "examples/data/datasets/seg-bin-train.json"
+path_json_val = "examples/data/datasets/seg-bin-val.json"
+path_dir_root = "/ml_auto_trainer/examples/data"
 image_size = 512
 in_channels = 3
 out_channels = 1
