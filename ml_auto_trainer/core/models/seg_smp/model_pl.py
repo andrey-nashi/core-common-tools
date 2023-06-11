@@ -37,8 +37,8 @@ class SmpModel_Light(pl.LightningModule):
         self.register_buffer("mean", torch.tensor(params["mean"]).view(1, 3, 1, 1))
         self.loss_func = loss_func
 
-        self.optimizer = torch.optim.Adam
-        self.optimizer_lr = 0.001
+        self.optimizer = None
+        self.optimizer_lr = None
 
         # ---- Cache is an internal variable for logging performance
         self.is_save_log = is_save_log
@@ -55,74 +55,46 @@ class SmpModel_Light(pl.LightningModule):
         # ---- This check is useful for testing
         if image.device != self.device:
             image = image.to(self.device)
-        image = (image - self.mean) / self.std
-        mask = self.model(image)
+        #image = (image - self.mean) / self.std
+        mask = self.model.forward(image)
 
         return mask
 
-    def shared_step(self, batch, stage):
+    def training_step(self, batch, batch_index: int):
         image = batch[0]
         mask_gt = batch[1]
 
         assert image.ndim == 4
+        assert image.max() <= 1.0 and image.min() >= -1
         assert mask_gt.max() <= 1.0 and mask_gt.min() >= 0
 
         mask_pr = self.forward(image)
-        mask_pr = mask_pr.sigmoid()
-        loss = self.loss_func(mask_pr, mask_gt)
 
-        # ---- Logging of various metrics to shared cache
-        if stage == "valid" and self.is_save_log:
-            prob_mask = mask_pr.sigmoid()
-            pred_mask = (prob_mask > 0.5).float()
-            tp, fp, fn, tn = smp.metrics.get_stats(pred_mask.long(), mask_gt.long(), mode="binary")
-            log_message = {
-                "tp": tp.detach().cpu(),
-                "fp": fp.detach().cpu(),
-                "fn": fn.detach().cpu(),
-                "tn": tn.detach().cpu()
-            }
-            self.cache.append(log_message)
+        loss = self.loss_func(mask_pr, mask_gt)
         return loss
 
-    def shared_epoch_end(self, stage):
-
-        # ---- Something went wrong
-        if len(self.cache) == 0:
-            return
-
-        if self.is_save_log:
-            tp = torch.cat([x["tp"] for x in self.cache])
-            fp = torch.cat([x["fp"] for x in self.cache])
-            fn = torch.cat([x["fn"] for x in self.cache])
-            tn = torch.cat([x["tn"] for x in self.cache])
-
-            per_image_iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro-imagewise")
-            dataset_iou = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
-
-            metrics = {
-                f"{stage}_per_image_iou": per_image_iou,
-                f"{stage}_dataset_iou": dataset_iou,
-            }
-
-            self.log_dict(metrics, prog_bar=True)
-            # ---- Reset the cache for the next epoch
-            self.cache = []
-
-    def training_step(self, batch, batch_index: int):
-        return self.shared_step(batch, "train")
-
     def on_train_epoch_end(self):
-        return self.shared_epoch_end("train")
+        return
 
     def validation_step(self, batch, batch_index: int):
-        return self.shared_step(batch, "valid")
+        image = batch[0]
+        mask_gt = batch[1]
+
+        assert image.ndim == 4
+        assert image.max() <= 1.0 and image.min() >= -1
+        assert mask_gt.max() <= 1.0 and mask_gt.min() >= 0
+
+        mask_pr = self.forward(image)
+        loss = self.loss_func(mask_pr, mask_gt)
+        self.log('val_loss', loss)
 
     def on_validation_epoch_end(self):
-        return self.shared_epoch_end("valid")
+        return
 
     def configure_optimizers(self):
-        return self.optimizer(self.parameters(), self.optimizer_lr)
+        optimizer = self.optimizer(self.model.parameters(), self.optimizer_lr)
+        print(">>>", optimizer)
+        return optimizer
 
     def predict(self, image: np.ndarray) -> np.ndarray:
         """

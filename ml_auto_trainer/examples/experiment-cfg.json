@@ -41,14 +41,14 @@
       },
 
       "optimizer": {
-        "name": "ADAM",
-        "lr": 0.1
+        "name": "SGD",
+        "lr": 0.01
       },
 
       "engine": {
-          "batch_size": 4,
+          "batch_size": 8,
           "epochs": 10,
-          "threads": 4,
+          "threads": 12,
           "device": "gpu",
           "checkpoint_path": "lightning_out/exp-001"
       }
@@ -75,14 +75,14 @@
         "out_classes": 1,
         "activation": "sigmoid"
       },
-      "model_checkpoint": "lightning_out/exp-001/model-weights.ckpt",
+      "model_checkpoint": "lightning_out/exp-001/last.ckpt",
 
       "engine": {
         "batch_size": 4
       },
 
       "processors": [
-        {"name": "ProcessorBinarySegmentation", "methods": ["generate_masks"], "args": {"path_output": "lightning_out/exp-001/test"}}
+        {"name": "ProcessorBinarySegmentation", "methods": ["generate_masks", "generate_hconcat"], "args": {"path_output": "lightning_out/exp-001/test"}}
       ]
 
 

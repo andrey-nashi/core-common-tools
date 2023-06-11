@@ -18,7 +18,6 @@ class SmpModel(nn.Module):
         MODEL_UNET: smp.Unet
     }
 
-
     MODEL_WEIGHTS_NONE = None
     MODEL_WEIGHTS_IMAGENET = "imagenet"
 
@@ -41,7 +40,6 @@ class SmpModel(nn.Module):
         model_obj = self._MODEL_TABLE[model_name]
         self.model = model_obj(encoder_name=encoder_name, in_channels=in_channels, classes=out_classes,
                                encoder_weights=encoder_weights, activation=activation)
-
 
     def forward(self, x: torch.Tensor):
         return self.model(x)

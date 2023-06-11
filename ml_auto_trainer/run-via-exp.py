@@ -7,12 +7,15 @@ def run(path_experiment_json: str):
 
     # ---- Load experiment configurations
     experiment_cfg = ExperimentConfiguration()
-    experiment_cfg.load_from_file(path_experiment_json)
+    is_ok = experiment_cfg.load_from_file(path_experiment_json)
+    if not is_ok:
+        print("[ERROR]: Incorrect file format")
+        return
 
     # ---- Experiment: train
-    experiment = Experiment()
-    experiment.build_train(experiment_cfg)
-    Engine.run_trainer(experiment)
+    #experiment = Experiment()
+    #experiment.build_train(experiment_cfg)
+    #Engine.run_trainer(experiment)
 
     # ---- Experiment: test
     experiment = Experiment()
