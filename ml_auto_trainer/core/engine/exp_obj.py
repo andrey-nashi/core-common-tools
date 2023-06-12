@@ -84,8 +84,8 @@ class ExperimentTest:
         if not is_ok: raise FileNotFoundError
         self.dataset_test.set_transform_func(self.transform_test_func)
 
-        self.model = ModelFactory.create_model(exp_cfg.model_name_t, exp_cfg.model_args_t)
-        self.model.load_from_checkpoint(exp_cfg.model_checkpoint)
+        model_class = ModelFactory.get_model_class(exp_cfg.model_name_t)
+        self.model = model_class.load_from_checkpoint(exp_cfg.model_checkpoint)
 
         self.engine_batch_size = exp_cfg.engine_batch_size_ts
 

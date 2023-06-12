@@ -75,7 +75,7 @@
         "out_classes": 1,
         "activation": "sigmoid"
       },
-      "model_checkpoint": "lightning_out/exp-001/last.ckpt",
+      "model_checkpoint": "lightning_out/exp-001/model-weights.ckpt",
 
       "engine": {
         "batch_size": 4

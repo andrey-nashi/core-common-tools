@@ -36,6 +36,15 @@ class ModelFactory:
         return [list(ModelFactory._TABLE_MODEL_RAW.keys()), list(ModelFactory._TABLE_MODEL_PL.keys())]
 
     @staticmethod
+    def get_model_class(model_name):
+        if model_name in ModelFactory._TABLE_MODEL_RAW:
+            return ModelFactory._TABLE_MODEL_RAW[model_name]
+        elif model_name in ModelFactory._TABLE_MODEL_PL:
+            return ModelFactory._TABLE_MODEL_PL[model_name]
+        else:
+            raise NotImplemented
+
+    @staticmethod
     def get_model_args(model_name: str):
         if model_name in ModelFactory._TABLE_MODEL_RAW:
             target_model = ModelFactory._TABLE_MODEL_RAW[model_name]

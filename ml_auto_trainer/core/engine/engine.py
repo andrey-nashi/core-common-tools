@@ -1,4 +1,5 @@
-import os.path
+import os
+import shutil
 from datetime import datetime
 from tqdm import tqdm
 import torch
@@ -21,6 +22,9 @@ class Engine:
             checkpoint_dir_path = exp.engine_checkpoint
         if not os.path.exists(checkpoint_dir_path):
             os.makedirs(checkpoint_dir_path)
+        else:
+            shutil.rmtree(checkpoint_dir_path)
+            os.makedirs(checkpoint_dir_path)
 
         train_dataloader = DataLoader(exp.dataset_train, batch_size=4, shuffle=True, num_workers=4)
         valid_dataloader = DataLoader(exp.dataset_valid, batch_size=4, shuffle=False, num_workers=4)
@@ -36,13 +40,14 @@ class Engine:
 
         test_dataloader = DataLoader(exp.dataset_test, batch_size=exp.engine_batch_size, shuffle=False, num_workers=1)
 
-        #exp.model.cuda()
-        #exp.model.eval()
+        exp.model.cuda()
+        exp.model.eval()
+        model = exp.model
         #<<<ERR
-        model = exp_train.model
-        model.cuda()
-        model.eval()
-        print(exp.dataset_test.transform_func)
+        #model = exp_train.model
+        #model.cuda()
+        #model.eval()
+
         with torch.no_grad():
             batch_id = 0
             progress_bar = tqdm(desc="Testing", total=len(test_dataloader))

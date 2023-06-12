@@ -1,5 +1,6 @@
 import inspect
 
+from .ds_clf import DatasetClassification
 from .ds_seg_bin import DatasetSegmentationBinary
 
 
@@ -7,6 +8,7 @@ class DatasetFactory:
 
     _LIST_DATASETS = [
         DatasetSegmentationBinary,
+        DatasetClassification
      ]
 
     _TABLE_DATASETS = {m.__name__:m for m in _LIST_DATASETS}

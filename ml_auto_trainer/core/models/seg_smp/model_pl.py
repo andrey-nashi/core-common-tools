@@ -7,7 +7,7 @@ from .model_raw import SmpModel
 
 class SmpModel_Light(pl.LightningModule):
 
-    def __init__(self, model_name: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable = None, is_save_log: bool = True, activation: str = None):
+    def __init__(self, model_name: str, encoder_name: str, in_channels: int, out_classes: int, loss_func: callable = None, activation: str = None):
         """
         Initialize segmentation model with given architecture, encoder, number of channels.
         :param model_name: model architecture [Unet, UnetPlusPlus, MAnet, Linknet, FPN, PSPNet, DeepLabV3, DeepLabV3Plus, PAN]
@@ -24,7 +24,7 @@ class SmpModel_Light(pl.LightningModule):
         super().__init__()
 
         # ---- Force pytorch lighting to ignore saving loss function, and other flags
-        self.save_hyperparameters(ignore=["loss_func", "is_save_log"])
+        self.save_hyperparameters(ignore=["loss_func"])
 
         # ---- Create smp model with given parameters
         self.model = SmpModel(model_name=model_name, encoder_name=encoder_name, in_channels=in_channels,
@@ -39,10 +39,6 @@ class SmpModel_Light(pl.LightningModule):
 
         self.optimizer = None
         self.optimizer_lr = None
-
-        # ---- Cache is an internal variable for logging performance
-        self.is_save_log = is_save_log
-        self.cache = []
 
     def set_loss_func(self, loss_func: callable):
         self.loss_func = loss_func
