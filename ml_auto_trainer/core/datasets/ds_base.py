@@ -34,6 +34,7 @@ def normalize_numpy(array, mode):
 class AbstractDataset(Dataset):
 
     def __init__(self, transform_func: callable = None):
+        super(AbstractDataset, self).__init__()
         self.transform_func = transform_func
         self.is_to_tensor = True
         self.samples_table = []
@@ -84,7 +85,6 @@ class AbstractDataset(Dataset):
 
         output = self.samples_table[index_start:index_start + element_count]
         return output
-
 
     @property
     def size(self):

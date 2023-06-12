@@ -26,7 +26,6 @@ class ProcessorBinarySegmentation:
             output_mask = batch_output[sample_id][0]
             info = batch_info[sample_id]
 
-            print(np.min(output_mask), np.max(output_mask))
             output_mask = output_mask * 255
 
             file_name = os.path.basename(info["mask"])

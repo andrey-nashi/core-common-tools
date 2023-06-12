@@ -1,5 +1,5 @@
 
-from core.engine.experiment import Experiment, ExperimentConfiguration
+from core.engine import Experiment, ExperimentConfiguration
 from core.engine.engine import Engine
 
 
@@ -12,15 +12,17 @@ def run(path_experiment_json: str):
         print("[ERROR]: Incorrect file format")
         return
 
-    # ---- Experiment: train
     experiment = Experiment()
-    experiment.build_train(experiment_cfg)
-    Engine.run_trainer(experiment)
+    experiment.configure(experiment_cfg)
+
+    # ---- Experiment: train
+    exp_train = experiment.get_train()
+    Engine.run_trainer(exp_train)
 
     # ---- Experiment: test
-    #experiment = Experiment()
-    experiment.build_test(experiment_cfg)
-    Engine.run_tester(experiment)
+    exp_test = experiment.get_test()
+    Engine.run_tester(exp_test, exp_train)
+
 
 if __name__ == '__main__':
     path = "examples/experiment-cfg.json"

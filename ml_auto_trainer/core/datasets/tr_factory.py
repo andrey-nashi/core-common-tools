@@ -1,4 +1,4 @@
-import inspect
+import copy
 import albumentations as alb
 
 
@@ -28,14 +28,14 @@ class TransformationFactory:
     def create_transform(transformation_list: list):
         if len(transformation_list) == 0: return None
 
-        serialized_cfg = TransformationFactory._TEMPLATE_S.copy()
+        serialized_cfg = copy.deepcopy(TransformationFactory._TEMPLATE_S)
         tl = serialized_cfg["transform"]["transforms"]
 
         for transform_cfg in transformation_list:
             transform_name = transform_cfg[TransformationFactory.CFG_TRANSFORM_NAME]
             transform_args = transform_cfg[TransformationFactory.CFG_TRANSFORM_ARGS]
 
-            tr = transform_args.copy()
+            tr = copy.deepcopy(transform_args)
             tr[TransformationFactory.TR_NAME] = transform_name
             if TransformationFactory.TR_P not in tr:
                 tr[TransformationFactory.TR_P] = 0.5

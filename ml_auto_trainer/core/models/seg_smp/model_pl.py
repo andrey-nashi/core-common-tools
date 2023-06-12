@@ -93,7 +93,6 @@ class SmpModel_Light(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = self.optimizer(self.model.parameters(), self.optimizer_lr)
-        print(">>>", optimizer)
         return optimizer
 
     def predict(self, image: np.ndarray) -> np.ndarray:

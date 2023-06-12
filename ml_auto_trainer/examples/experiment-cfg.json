@@ -46,9 +46,9 @@
       },
 
       "engine": {
-          "batch_size": 8,
+          "batch_size": 4,
           "epochs": 1,
-          "threads": 12,
+          "threads": 4,
           "device": "gpu",
           "checkpoint_path": "lightning_out/exp-001"
       }
@@ -82,7 +82,7 @@
       },
 
       "processors": [
-        {"name": "ProcessorBinarySegmentation", "methods": ["generate_masks"], "args": {"path_output": "lightning_out/exp-001/test"}}
+        {"name": "ProcessorBinarySegmentation", "methods": ["generate_masks", "generate_hconcat"], "args": {"path_output": "lightning_out/exp-001/test"}}
       ]
 
 
