@@ -1,8 +1,9 @@
+import argparse
 
 from core.engine import Experiment, ExperimentConfiguration
 from core.engine.engine import Engine
 
-
+# --------------------------------------------------------------
 def run(path_experiment_json: str):
 
     # ---- Load experiment configurations
@@ -21,9 +22,15 @@ def run(path_experiment_json: str):
 
     # ---- Experiment: test
     exp_test = experiment.get_test()
-    Engine.run_tester(exp_test, exp_train)
+    Engine.run_tester(exp_test)
 
+# --------------------------------------------------------------
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="", formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-i", type=str, help="path to experiment config")
+    args = parser.parse_args()
+    return args.i
 
 if __name__ == '__main__':
-    path = "examples/experiment-cfg.json"
-    run(path)
+    path_cfg = parse_arguments()
+    run(path_cfg)

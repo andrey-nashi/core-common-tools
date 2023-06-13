@@ -35,7 +35,7 @@ class Engine:
         trainer.fit(exp.model, train_dataloaders=train_dataloader, val_dataloaders=valid_dataloader)
 
     @staticmethod
-    def run_tester(exp: ExperimentTest, exp_train):
+    def run_tester(exp: ExperimentTest):
         if not exp.is_configured: return
 
         test_dataloader = DataLoader(exp.dataset_test, batch_size=exp.engine_batch_size, shuffle=False, num_workers=1)
@@ -43,10 +43,6 @@ class Engine:
         exp.model.cuda()
         exp.model.eval()
         model = exp.model
-        #<<<ERR
-        #model = exp_train.model
-        #model.cuda()
-        #model.eval()
 
         with torch.no_grad():
             batch_id = 0

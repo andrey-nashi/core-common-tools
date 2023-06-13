@@ -5,6 +5,7 @@ from .seg_unet2.model_raw import UpashUnet, UpashUnet2, UpashUnet3
 
 from .seg_smp.model_pl import SmpModel_Light
 from .seg_unet2.model_pl import UpashUnet_Light
+from .clf_densenet.model_pl import DenseNet_Light
 
 class ModelFactory:
 
@@ -17,7 +18,7 @@ class ModelFactory:
 
     _LIST_MODEL_PL = [
         SmpModel_Light,
-        UpashUnet_Light,
+        DenseNet_Light
     ]
 
     _TABLE_MODEL_RAW = {m.__name__:m for m in _LIST_MODEL_RAW}

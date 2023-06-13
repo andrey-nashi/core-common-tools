@@ -1,12 +1,13 @@
 from .dice_loss import DiceLoss
 from .smp_loss import SmpDiceLoss
-
+from .bce import BinaryCrossEntropyLoss
 
 class LossFactory:
 
     _LOSSES = [
         DiceLoss,
-        SmpDiceLoss
+        SmpDiceLoss,
+        BinaryCrossEntropyLoss
     ]
 
     _TABLE_LOSSES = {m.__name__:m for m in _LOSSES}

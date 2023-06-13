@@ -82,7 +82,15 @@
       },
 
       "processors": [
-        {"name": "ProcessorBinarySegmentation", "methods": ["generate_masks", "generate_hconcat"], "args": {"path_output": "lightning_out/exp-001/test"}}
+        {
+          "name": "ProcessorBinarySegmentation",
+          "args": {"path_output": "lightning_out/exp-001/test"},
+          "methods": [
+            "generate_masks_probability",
+            "generate_masks_binary",
+            "generate_hconcat"
+          ]
+        }
       ]
 
 

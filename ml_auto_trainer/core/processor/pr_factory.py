@@ -1,11 +1,13 @@
 import inspect
 
 from .pr_seg_bin import ProcessorBinarySegmentation
+from .pr_clf_multi import ProcessorMultilabelClassification
 
 class ProcessorFactory:
 
     _LIST_PROCESSORS = [
-        ProcessorBinarySegmentation
+        ProcessorBinarySegmentation,
+        ProcessorMultilabelClassification
      ]
 
     _TABLE_PROCESSORS = {m.__name__:m for m in _LIST_PROCESSORS}
