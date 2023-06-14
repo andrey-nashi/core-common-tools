@@ -1,5 +1,5 @@
 {
-  "train_cfg": {
+  "train_cfgx": {
       "dataset_train": {
         "name": "DatasetClassification",
         "path_json": "./examples/data/datasets/clf-multi-train.json",
@@ -46,7 +46,7 @@
 
       "engine": {
           "batch_size": 4,
-          "epochs": 1,
+          "epochs": 10,
           "threads": 4,
           "device": "gpu",
           "checkpoint_path": "lightning_out/exp-002"
@@ -84,8 +84,9 @@
           "name": "ProcessorMultilabelClassification",
           "args": {"path_output": "lightning_out/exp-002/test"},
           "methods": [
-            "generate_predictions_probability"
-
+            "generate_predictions_probability",
+            "generate_predictions_binary",
+            "compute_scores"
           ]
         }
       ]

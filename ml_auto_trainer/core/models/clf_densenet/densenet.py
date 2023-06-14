@@ -28,9 +28,8 @@ class DenseNet121(nn.Module):
         self.in_channels = in_channels
 
         # ---- Build model, load trained weights from torchvision
-        # weights = torchvision.models.DenseNet121_Weights.DEFAULT if self.is_trained else None
-        # self.densenet121 = torchvision.models.densenet121(weights=weights)
-        self.densenet121 = torchvision.models.densenet121(pretrained=self.is_trained)
+        weights = torchvision.models.DenseNet121_Weights.DEFAULT if self.is_trained else None
+        self.densenet121 = torchvision.models.densenet121(weights=weights)
 
         # ---- Build the fc layer with the specified activation function
         kernel_count = self.densenet121.classifier.in_features

@@ -31,8 +31,10 @@ class Engine:
 
         checkpoint_callback = ModelCheckpoint(dirpath=checkpoint_dir_path, filename="model-weights", mode="min")
 
-        trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=1, callbacks=[checkpoint_callback])
+        trainer = pl.Trainer(accelerator='gpu', devices=1, max_epochs=exp.engine_epochs, callbacks=[checkpoint_callback])
         trainer.fit(exp.model, train_dataloaders=train_dataloader, val_dataloaders=valid_dataloader)
+
+        shutil.move(checkpoint_callback.best_model_path, os.path.join(checkpoint_dir_path, "model-weights.ckpt"))
 
     @staticmethod
     def run_tester(exp: ExperimentTest):
