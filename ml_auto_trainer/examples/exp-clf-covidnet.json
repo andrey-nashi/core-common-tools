@@ -1,0 +1,96 @@
+{
+  "train_cfg": {
+      "dataset_train": {
+        "name": "DatasetClassification",
+        "path_json": "./examples/data/datasets/clf-multi-train.json",
+        "path_root": "./examples/data",
+        "args": {}
+      },
+
+      "dataset_validation": {
+        "name": "DatasetClassification",
+        "path_json": "./examples/data/datasets/clf-multi-val.json",
+        "path_root": "./examples/data",
+        "args": {}
+      },
+
+      "transform_train": [
+        {"name": "RandomRotate90", "args":  {}},
+        {"name": "Flip", "args": {}},
+        {"name": "Transpose", "args": {}},
+        {"name": "ShiftScaleRotate", "args": {"shift_limit": 0.06, "scale_limit": 0.2, "rotate_limit": 45, "p": 0.2}},
+        {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
+      ],
+
+      "transform_valid": [
+        {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
+      ],
+
+      "model_name": "CovidNet_Light",
+      "model_args": {
+        "in_channels": 3,
+        "out_classes": 10,
+        "model_type": "large",
+        "activation": "sigmoid"
+      },
+
+      "loss_func": {
+        "name": "BinaryCrossEntropyLoss",
+        "args": {}
+      },
+
+      "optimizer": {
+        "name": "SGD",
+        "lr": 0.01
+      },
+
+      "engine": {
+          "batch_size": 4,
+          "epochs": 10,
+          "threads": 4,
+          "device": "gpu",
+          "checkpoint_path": "lightning_out/exp-002"
+      }
+  },
+
+  "test_cfg": {
+
+      "dataset_test": {
+        "name": "DatasetClassification",
+        "path_json": "./examples/data/datasets/clf-multi-val.json",
+        "path_root": "./examples/data",
+        "args": {}
+      },
+
+      "transform_test": [
+        {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
+      ],
+
+      "model_name": "CovidNet_Light",
+      "model_args": {
+        "in_channels": 3,
+        "out_classes": 10,
+        "model_type": "large",
+        "activation": "sigmoid"
+      },
+      "model_checkpoint": "lightning_out/exp-002/model-weights.ckpt",
+
+      "engine": {
+        "batch_size": 4
+      },
+
+      "processors": [
+        {
+          "name": "ProcessorMultilabelClassification",
+          "args": {"path_output": "lightning_out/exp-002/test"},
+          "methods": [
+            "generate_predictions_probability",
+            "generate_predictions_binary",
+            "compute_scores"
+          ]
+        }
+      ]
+
+
+  }
+}

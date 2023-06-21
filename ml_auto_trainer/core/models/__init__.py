@@ -2,10 +2,13 @@ import inspect
 
 from .clf_alexnet.model_pl import AlexNet_Light
 from .clf_convnet.model_pl import ConvNet12_Light
+from .clf_covidnet.model_pl import CovidNet_Light
+
 from .clf_densenet.model_pl import DenseNet_Light
 
 from .seg_smp.model_pl import SmpModel_Light
-from .seg_unet2.model_pl import UpashUnet_Light
+from .seg_deeplab.model_pl import DeeplabV3_Light
+
 
 
 
@@ -17,8 +20,10 @@ class ModelFactory:
     _LIST_MODEL_PL = [
         AlexNet_Light,
         ConvNet12_Light,
+        CovidNet_Light,
         DenseNet_Light,
 
+        DeeplabV3_Light,
         SmpModel_Light
     ]
 

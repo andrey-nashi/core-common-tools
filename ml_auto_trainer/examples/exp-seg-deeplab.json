@@ -1,0 +1,94 @@
+{
+  "train_cfg": {
+      "dataset_train": {
+        "name": "DatasetSegmentationBinary",
+        "path_json": "./examples/data/datasets/seg-bin-train.json",
+        "path_root": "./examples/data",
+        "args": {}
+      },
+
+      "dataset_validation": {
+        "name": "DatasetSegmentationBinary",
+        "path_json": "./examples/data/datasets/seg-bin-val.json",
+        "path_root": "./examples/data",
+        "args": {}
+      },
+
+      "transform_train": [
+        {"name": "RandomRotate90", "args":  {}},
+        {"name": "Flip", "args": {}},
+        {"name": "Transpose", "args": {}},
+        {"name": "ShiftScaleRotate", "args": {"shift_limit": 0.06, "scale_limit": 0.2, "rotate_limit": 45, "p": 0.2}},
+        {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
+      ],
+
+      "transform_valid": [
+        {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
+      ],
+
+      "model_name": "DeeplabV3_Light",
+      "model_args": {
+        "in_channels": 3,
+        "out_classes": 1,
+        "backbone": "resnet50"
+      },
+
+      "loss_func": {
+        "name": "SmpDiceLoss",
+        "args": {"mode": "binary", "from_logits": false}
+      },
+
+      "optimizer": {
+        "name": "SGD",
+        "lr": 0.01
+      },
+
+      "engine": {
+          "batch_size": 4,
+          "epochs": 1,
+          "threads": 4,
+          "device": "gpu",
+          "checkpoint_path": "lightning_out/exp-001"
+      }
+  },
+
+  "test_cfg": {
+
+      "dataset_test": {
+        "name": "DatasetSegmentationBinary",
+        "path_json": "./examples/data/datasets/seg-bin-val.json",
+        "path_root": "./examples/data",
+        "args": {}
+      },
+
+      "transform_test": [
+        {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
+      ],
+
+      "model_name": "DeeplabV3_Light",
+      "model_args": {
+        "in_channels": 3,
+        "out_classes": 1,
+        "backbone": "resnet50"
+      },
+      "model_checkpoint": "lightning_out/exp-001/model-weights.ckpt",
+
+      "engine": {
+        "batch_size": 4
+      },
+
+      "processors": [
+        {
+          "name": "ProcessorBinarySegmentation",
+          "args": {"path_output": "lightning_out/exp-001/test"},
+          "methods": [
+            "generate_masks_probability",
+            "generate_masks_binary",
+            "generate_hconcat"
+          ]
+        }
+      ]
+
+
+  }
+}

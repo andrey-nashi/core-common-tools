@@ -64,16 +64,7 @@ class CovidNet(nn.Module):
     TYPE_LARGE = "large"
     TYPE_SMALL = "small"
 
-    #---------------------------------
-    # ---- Input mode - only input
-    INPUT_MODE_X = 0
-    # ---- Input mode - both input and target
-    INPUT_MODE_XY = 1
-    # ---- Expected model input for each stage (0 - training, 1 - validation, 2 - test)
-    STAGE_MODE = [INPUT_MODE_X, INPUT_MODE_X, INPUT_MODE_X]
-    #---------------------------------
-
-    def __init__(self, num_classes: int=3, in_channels: int=3, in_size: int=16, model_type: str=TYPE_LARGE, activation=None):
+    def __init__(self, num_classes: int = 3, in_channels: int = 3, in_size: int = 16, model_type: str = TYPE_LARGE, activation: str = ACTIVATION_SIGMOID):
         """
         Build the COVIDNET network for classification
         Input - [batch, in_channels, 64*K, 64*K]
@@ -85,9 +76,6 @@ class CovidNet(nn.Module):
         :param activation: (str) - SIGMOID,SOFTMAX, NONE
         """
         super(CovidNet, self).__init__()
-
-        #---- Stage represents what stage the network is - 0=training, 1=validation, 2=inference/test
-        self.stage = 0
 
         #---- Default arguments
         self.num_classes = num_classes
@@ -120,7 +108,7 @@ class CovidNet(nn.Module):
             if ('pool' in key): self.add_module(key, nn.MaxPool2d(filters[key][0], filters[key][1]))
             else: self.add_module(key, PEXP(filters[key][0], filters[key][1]))
 
-        if (self.model_type == "LARGE"):
+        if self.model_type == "LARGE":
 
             self.add_module('conv1_1x1', nn.Conv2d(in_channels=64, out_channels=256, kernel_size=1))
             self.add_module('conv2_1x1', nn.Conv2d(in_channels=256, out_channels=512, kernel_size=1))
@@ -131,7 +119,7 @@ class CovidNet(nn.Module):
         else:
             self.__forward__ = self.forward_small_net
 
-        self.avgx = nn.AdaptiveAvgPool2d((self.in_size,self.in_size))
+        self.avgx = nn.AdaptiveAvgPool2d((self.in_size, self.in_size))
         self.add_module('flatten', Flatten())
         self.add_module('fc1', nn.Linear(2048 * self.in_size * self.in_size, 1024))
 
@@ -239,7 +227,3 @@ class CovidNet(nn.Module):
             logits = self.act(logits)
 
         return logits
-
-    def set_stage(self, stage_id: int):
-        if stage_id in [0, 1, 2]:
-            self.stage = stage_id
