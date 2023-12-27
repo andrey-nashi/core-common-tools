@@ -82,8 +82,10 @@ class ManagerAwsBucket:
             new_file_path = os.path.join(path_dir_local, new_file_name)
             if self.root is not None:
                 path_file_remote = os.path.join(self.root, path_file_remote)
-            self.bucket_client.download_file(self.bucket_name, path_file_remote, new_file_path)
-        except:
+            self.client.download_file(self.bucket_name, path_file_remote, new_file_path)
+            return  True
+        except Exception as e:
+            print(e)
             return False
 
     @_check_is_connection_established
@@ -92,4 +94,40 @@ class ManagerAwsBucket:
 
     @_check_is_connection_established
     def download_dir(self, path_dir_remote: str, path_dir_local: str = None):
-        return False
+        print(path_dir_remote)
+        found_objects = self.client.list_objects_v2(Bucket=self.bucket_name, Prefix=path_dir_remote)
+        if "Contents" not in found_objects: return False
+        print(found_objects)
+        found_objects = found_objects["Contents"]
+        if len(found_objects) == 0: return False
+
+        if not os.path.exists(path_dir_local):
+            os.makedirs(path_dir_local)
+
+        for obj in found_objects:
+            remote_path = obj["Key"]
+
+            local_path = remote_path.replace(path_dir_remote, path_dir_local + "/")
+
+            if not os.path.exists(os.path.dirname(local_path)):
+                os.makedirs(os.path.dirname(local_path))
+
+            local_dir = os.path.dirname(local_path)
+            is_ok = self.download_file(remote_path, local_dir)
+
+        return True
+
+
+
+def download_from_aws(date: str, oid: str, path_dir: str):
+    prefix = "RPS/data/db_data/kojiya_220830/Item/"
+    global_oid = prefix + date + "/" + oid + "/"
+
+    aws = ManagerAwsBucket(bucket_name="roms-rps-backup")
+    path_dl = os.path.join(path_dir, oid)
+    aws.download_dir(global_oid, path_dl)
+
+date = "20231208"
+oid = "000391e3c7a74bd29c73ef6063a42480_0"
+dldir = "/home/andrey"
+download_from_aws(date, oid, dldir)
