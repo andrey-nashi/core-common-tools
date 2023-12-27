@@ -116,18 +116,3 @@ class ManagerAwsBucket:
             is_ok = self.download_file(remote_path, local_dir)
 
         return True
-
-
-
-def download_from_aws(date: str, oid: str, path_dir: str):
-    prefix = "RPS/data/db_data/kojiya_220830/Item/"
-    global_oid = prefix + date + "/" + oid + "/"
-
-    aws = ManagerAwsBucket(bucket_name="roms-rps-backup")
-    path_dl = os.path.join(path_dir, oid)
-    aws.download_dir(global_oid, path_dl)
-
-date = "20231208"
-oid = "000391e3c7a74bd29c73ef6063a42480_0"
-dldir = "/home/andrey"
-download_from_aws(date, oid, dldir)
