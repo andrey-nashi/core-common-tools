@@ -1,15 +1,15 @@
 {
   "train_cfg": {
       "dataset_train": {
-        "name": "DatasetClassification",
-        "path_json": "./examples/data/datasets/clf-multi-train.json",
+        "name": "DatasetSegmentationBinary",
+        "path_json": "./examples/data/datasets/seg-bin-train.json",
         "path_root": "./examples/data",
         "args": {}
       },
 
       "dataset_validation": {
-        "name": "DatasetClassification",
-        "path_json": "./examples/data/datasets/clf-multi-val.json",
+        "name": "DatasetSegmentationBinary",
+        "path_json": "./examples/data/datasets/seg-bin-val.json",
         "path_root": "./examples/data",
         "args": {}
       },
@@ -26,17 +26,16 @@
         {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
       ],
 
-      "model_name": "DenseNet_Light",
+      "model_name": "DeeplabV3_Light",
       "model_args": {
-        "model_name": "DenseNet121",
         "in_channels": 3,
-        "out_classes": 10,
-        "activation": "sigmoid"
+        "out_classes": 1,
+        "backbone": "resnet50"
       },
 
       "loss_func": {
-        "name": "BinaryCrossEntropyLoss",
-        "args": {}
+        "name": "SmpDiceLoss",
+        "args": {"mode": "binary", "from_logits": false}
       },
 
       "optimizer": {
@@ -46,18 +45,18 @@
 
       "engine": {
           "batch_size": 4,
-          "epochs": 10,
+          "epochs": 1,
           "threads": 4,
           "device": "gpu",
-          "checkpoint_path": "lightning_out/exp-002"
+          "checkpoint_path": "lightning_out/exp-001"
       }
   },
 
   "test_cfg": {
 
       "dataset_test": {
-        "name": "DatasetClassification",
-        "path_json": "./examples/data/datasets/clf-multi-val.json",
+        "name": "DatasetSegmentationBinary",
+        "path_json": "./examples/data/datasets/seg-bin-val.json",
         "path_root": "./examples/data",
         "args": {}
       },
@@ -66,14 +65,13 @@
         {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
       ],
 
-      "model_name": "DenseNet_Light",
+      "model_name": "DeeplabV3_Light",
       "model_args": {
-        "model_name": "DenseNet121",
         "in_channels": 3,
-        "out_classes": 10,
-        "activation": "sigmoid"
+        "out_classes": 1,
+        "backbone": "resnet50"
       },
-      "model_checkpoint": "lightning_out/exp-002/model-weights.ckpt",
+      "model_checkpoint": "lightning_out/exp-001/model-weights.ckpt",
 
       "engine": {
         "batch_size": 4
@@ -81,12 +79,12 @@
 
       "processors": [
         {
-          "name": "ProcessorMultilabelClassification",
-          "args": {"path_output": "lightning_out/exp-002/test"},
+          "name": "ProcessorBinarySegmentation",
+          "args": {"path_output": "lightning_out/exp-001/test"},
           "methods": [
-            "generate_predictions_probability",
-            "generate_predictions_binary",
-            "compute_scores"
+            "generate_masks_probability",
+            "generate_masks_binary",
+            "generate_hconcat"
           ]
         }
       ]

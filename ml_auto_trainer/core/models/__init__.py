@@ -1,24 +1,30 @@
 import inspect
 
-from .seg_smp.model_raw import SmpModel
-from .seg_unet2.model_raw import UpashUnet, UpashUnet2, UpashUnet3
+from .clf_alexnet.model_pl import AlexNet_Light
+from .clf_convnet.model_pl import ConvNet12_Light
+from .clf_covidnet.model_pl import CovidNet_Light
+
+from .clf_densenet.model_pl import DenseNet_Light
 
 from .seg_smp.model_pl import SmpModel_Light
-from .seg_unet2.model_pl import UpashUnet_Light
-from .clf_densenet.model_pl import DenseNet_Light
+from .seg_deeplab.model_pl import DeeplabV3_Light
+
+
+
 
 class ModelFactory:
 
     _LIST_MODEL_RAW = [
-        SmpModel,
-        UpashUnet,
-        UpashUnet2,
-        UpashUnet3
     ]
 
     _LIST_MODEL_PL = [
-        SmpModel_Light,
-        DenseNet_Light
+        AlexNet_Light,
+        ConvNet12_Light,
+        CovidNet_Light,
+        DenseNet_Light,
+
+        DeeplabV3_Light,
+        SmpModel_Light
     ]
 
     _TABLE_MODEL_RAW = {m.__name__:m for m in _LIST_MODEL_RAW}

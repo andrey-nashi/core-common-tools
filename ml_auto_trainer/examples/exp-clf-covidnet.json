@@ -26,11 +26,11 @@
         {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
       ],
 
-      "model_name": "DenseNet_Light",
+      "model_name": "CovidNet_Light",
       "model_args": {
-        "model_name": "DenseNet121",
         "in_channels": 3,
         "out_classes": 10,
+        "model_type": "large",
         "activation": "sigmoid"
       },
 
@@ -66,11 +66,11 @@
         {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
       ],
 
-      "model_name": "DenseNet_Light",
+      "model_name": "CovidNet_Light",
       "model_args": {
-        "model_name": "DenseNet121",
         "in_channels": 3,
         "out_classes": 10,
+        "model_type": "large",
         "activation": "sigmoid"
       },
       "model_checkpoint": "lightning_out/exp-002/model-weights.ckpt",

@@ -24,7 +24,8 @@ class AlexNet(nn.Module):
         self.is_trained = is_trained
         self.activation = activation
 
-        self.alexnet = torchvision.models.alexnet(pretrained=self.is_trained)
+        if self.is_trained:
+            self.alexnet = torchvision.models.alexnet(weights=torchvision.models.AlexNet_Weights.DEFAULT)
 
         if self.activation == AlexNet.ACTIVATION_SIGMOID:
             self.alexnet.classifier = nn.Sequential(

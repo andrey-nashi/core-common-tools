@@ -26,9 +26,8 @@
         {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
       ],
 
-      "model_name": "DenseNet_Light",
+      "model_name": "ConvNet12_Light",
       "model_args": {
-        "model_name": "DenseNet121",
         "in_channels": 3,
         "out_classes": 10,
         "activation": "sigmoid"
@@ -66,9 +65,8 @@
         {"name": "Resize", "args": {"width": 512, "height": 512, "p": 1, "always_apply": true}}
       ],
 
-      "model_name": "DenseNet_Light",
+      "model_name": "ConvNet12_Light",
       "model_args": {
-        "model_name": "DenseNet121",
         "in_channels": 3,
         "out_classes": 10,
         "activation": "sigmoid"
