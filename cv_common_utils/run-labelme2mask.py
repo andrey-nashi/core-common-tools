@@ -3,7 +3,7 @@ import cv2
 import json
 import argparse
 
-from core.cv2d_bmask import cv2d_convert_polygons2mask
+from core.cv2d_convert import cv2d_convert_polygons2mask
 
 # -----------------------------------------------------------------------------------------
 class LabelmeFile:
