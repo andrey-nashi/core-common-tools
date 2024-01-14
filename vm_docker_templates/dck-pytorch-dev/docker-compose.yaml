@@ -13,8 +13,6 @@ services:
       dockerfile: Dockerfile
     container_name: pytorch_dev
     #ports: ["2555:8000"]
-    command: uvicorn server.app:app --host 0.0.0.0
-
     privileged: true
     network_mode: "host"
     deploy:
@@ -25,7 +23,7 @@ services:
               count: all
               capabilities: [ gpu ]
     volumes:
-      - /home/indra:/home/indra
+      - /home/indra/Development:/mldev
 
     entrypoint:
       - bash

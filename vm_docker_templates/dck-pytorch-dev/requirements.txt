@@ -30,10 +30,10 @@ torch
 torchvision
 segmentation-models-pytorch
 efficientnet-pytorch
-segmentation-models-pytorch
 dataclasses
 albumentations
 pretrainedmodels
+pytorch-lightning
 adabound==0.0.5
 einops
 munkres
