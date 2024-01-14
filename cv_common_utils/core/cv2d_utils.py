@@ -7,7 +7,7 @@ def cv2d_swap_color(image: np.ndarray, color_old: list, color_new: list) -> np.n
     :param image: numpy array representing an image
     :param color_old: target color given as list [R,G,B]
     :param color_new: new color given as list [R,G,B]
-    :return: new generate image
+    :return: new generated image
     """
     assert len(color_old) == 3
     assert len(color_new) == 3
@@ -25,3 +25,38 @@ def cv2d_swap_color(image: np.ndarray, color_old: list, color_new: list) -> np.n
 
     output = cv2.merge([img_b, img_g, img_r])
     return output
+
+def cv2d_add_noise_gaussian(image: np.ndarray, mean: int = 0, sigma: int = 25) -> np.ndarray:
+    """
+    Add gaussian noise to the given image
+    :param image: numpy array representing an image
+    :param mean: gaussian noise mean value
+    :param sigma: gaussian noise sigma value
+    :return: new generated image
+    """
+    gauss = np.random.normal(mean, sigma, image.shape)
+    noisy = np.clip(image + gauss, 0, 255)
+    return noisy.astype(np.uint8)
+
+def cv2d_add_noise_sp(image: np.ndarray, salt_prob: float = 0.02, pepper_prob: float = 0.02):
+    """
+    Add salt and pepper noise to the given image
+    :param image: numpy array representing an image
+    :param salt_prob: probability of 'salt' noise
+    :param pepper_prob: probability of 'pepper' noise
+    :return: new generated image
+    """
+    row = image.shape[0]
+    col =image.shape[1]
+
+    noisy = np.copy(image)
+
+    # ---- Salt noise
+    salt = np.random.rand(row, col) < salt_prob
+    noisy[salt, :] = 255
+
+    # ---- Pepper noise
+    pepper = np.random.rand(row, col) < pepper_prob
+    noisy[pepper, :] = 0
+
+    return noisy.astype(np.uint8)
