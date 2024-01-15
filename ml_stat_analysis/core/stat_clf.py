@@ -23,6 +23,8 @@ def ml_stat_binary_classification(tp: int, tn: int, fp: int, fn: int):
     if 2 * tp + fp + fn != 0: output["f1_score"] = 2 * tp / (2 * tp + fp + fn)
     else: output["f1_score"] = -1
 
+    return output
+
 
 
 
