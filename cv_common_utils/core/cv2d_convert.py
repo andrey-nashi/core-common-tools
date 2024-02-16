@@ -1,7 +1,7 @@
 import random
 import cv2
 import numpy as np
-
+import base64
 
 def cv2d_convert_bbox2mask(height: int, width: int, bbox_list: list, label_list: list = None, label_target: int = None, score_list: list = None) -> np.ndarray:
     """
@@ -192,3 +192,19 @@ def cv2d_convert_label2pix(label_map, color_codes, one_hot=False):
         else:
             result[(label_map == idx)] = rgb
     return result
+
+
+def cv2d_to_b64(img: cv2.Mat, attributes: dict = {}) -> str:
+    attributes_str = ""
+    for key, val in attributes.items():
+        if type(val) is str:
+            attributes_str += f' {key}="{val}"'
+        elif type(val) is float or type(val) is int:
+            attributes_str += f" {key}={val}"
+        else:
+            raise Exception("Incorrect type attributes")
+
+    cnt = cv2.imencode(".png", img)[1]
+    dat: str = base64.encodebytes(cnt).decode("utf-8")
+
+    return dat + attributes_str
