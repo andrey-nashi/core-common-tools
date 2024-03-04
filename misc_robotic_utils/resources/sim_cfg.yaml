@@ -1,0 +1,3 @@
+gravity: [0, 0, 9.8]
+is_load_plane: True
+scene: "sim_level.yaml"
