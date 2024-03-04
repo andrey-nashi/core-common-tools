@@ -6,12 +6,12 @@ import trimesh
 import xml.etree.ElementTree as ET
 
 class ObjectUrdfBuilder:
-    def __init__(self, object_folder="", log_file ="vhacd_log.txt", urdf_prototype='_prototype.urdf'):
+    def __init__(self, object_folder, urdf_prototype, log_file ="vhacd_log.txt", ):
         self.object_folder = os.path.abspath(object_folder)
         self.log_file = os.path.abspath(log_file)
         self.suffix = "vhacd"
 
-        self.urdf_base = self._read_xml(os.path.join(object_folder,urdf_prototype))
+        self.urdf_base = self._read_xml(urdf_prototype)
 
 
     # Recursively get all files with a specific extension, excluding a certain suffix
