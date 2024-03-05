@@ -1,10 +1,20 @@
 scene: [
-  {
-    name: tote,
-    mesh: tote,
-    origin: [0, 0, 0.5],
-    scale: 1
-  }
+    {
+        name: tote,
+        mesh: tote,
+        origin: [2, 2, 0.2],
+        scale: 1,
+        is_static: True
+    },
+
+    {
+        name: robot,
+        mesh: robot,
+        origin: [0, 0, 0.5],
+        scale: 1
+
+    }
+
 ]
 
 camera: [

@@ -1,8 +1,7 @@
 import pybullet as p
 import time
 import pybullet_data
-import cv2
-import numpy as np
+import math
 
 from core.simulator.sim_camera import Camera
 from core.simulator.sim_library import MeshLibrary
@@ -21,11 +20,24 @@ path_cfg = "resources/sim_cfg.yaml"
 
 mesh_library = MeshLibrary(path_mesh_lib)
 level = LevelMap(path_level, mesh_library)
+x = p.getNumJoints(level.robot.ref_id)
+print(">>>>", x)
+for i in range(0, x):
+    print(p.getJointInfo(level.robot.ref_id, i))
+
+target_orn = p.getQuaternionFromEuler([0, - math.pi, 0])
+target_pos = [1, 0, 1]
+joint_poses = p.calculateInverseKinematics(level.robot.ref_id, 14, target_pos, target_orn)
+print(joint_poses)
+index = [2, 3, 4, 6, 7, 8]
+for j in range(0, len(joint_poses)):
+    p.setJointMotorControl2(bodyIndex=level.robot.ref_id, jointIndex=index[j], controlMode=p.POSITION_CONTROL,
+                            targetPosition=joint_poses[j])
 
 for i in range(0, 10):
     name = "can_" + str(i)
     mesh = "cola"
-    origin = [0, 0, 1 + 0.2 * i]
+    origin = [2, 2, 1 + 0.01 * i]
     scale = 5
     level.spawn(name, mesh, origin, scale)
 
@@ -34,7 +46,7 @@ pycam.open()
 
 frame_counter = 0
 
-for i in range(0,200):
+while True:
     p.stepSimulation()
     time.sleep(1./240)
 

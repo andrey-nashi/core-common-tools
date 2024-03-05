@@ -10,7 +10,7 @@ class Object3D:
         self.scale = scale
 
         record = library.get(self.mesh)
-        p.loadURDF(record.urdf, basePosition=self.origin, globalScaling=self.scale)
+        self.ref_id = p.loadURDF(record.urdf, basePosition=self.origin, globalScaling=self.scale)
 
 
 
