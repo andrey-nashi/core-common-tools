@@ -21,15 +21,19 @@ path_cfg = "resources/sim_cfg.yaml"
 mesh_library = MeshLibrary(path_mesh_lib)
 level = LevelMap(path_level, mesh_library)
 x = p.getNumJoints(level.robot.ref_id)
-print(">>>>", x)
+
+
 for i in range(0, x):
     print(p.getJointInfo(level.robot.ref_id, i))
 
-target_orn = p.getQuaternionFromEuler([0, - math.pi, 0])
+cube = p.loadURDF("cube.urdf", globalScaling=0.1, basePosition=[1, 0, 1], useFixedBase=True)
+
+target_orn = p.getQuaternionFromEuler([0, 0, 0])
 target_pos = [1, 0, 1]
-joint_poses = p.calculateInverseKinematics(level.robot.ref_id, 14, target_pos, target_orn)
+joint_poses = p.calculateInverseKinematics(level.robot.ref_id, x - 1, target_pos, target_orn)
 print(joint_poses)
 index = [2, 3, 4, 6, 7, 8]
+
 for j in range(0, len(joint_poses)):
     p.setJointMotorControl2(bodyIndex=level.robot.ref_id, jointIndex=index[j], controlMode=p.POSITION_CONTROL,
                             targetPosition=joint_poses[j])
@@ -39,7 +43,7 @@ for i in range(0, 10):
     mesh = "cola"
     origin = [2, 2, 1 + 0.01 * i]
     scale = 5
-    level.spawn(name, mesh, origin, scale)
+    level.spawn(name, mesh, origin, scale=scale)
 
 pycam = Camera()
 pycam.open()
