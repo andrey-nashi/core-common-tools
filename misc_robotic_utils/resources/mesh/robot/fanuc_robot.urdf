@@ -223,8 +223,8 @@
         <geometry>
           <mesh filename="visual/rod_mount.stl"/>
         </geometry>
-        <material name="tool_green">
-          <color rgba="0 1 0 1.0" />
+        <material name="tool_green_1">
+          <color rgba="0 0.8 0 1.0" />
         </material>
       </visual>
       <collision>
@@ -240,8 +240,8 @@
         <geometry>
           <mesh filename="visual/rod_l150.stl"/>
         </geometry>
-        <material name="tool_green">
-          <color rgba="0 1 0 1.0" />
+        <material name="tool_green_2">
+          <color rgba="0.1 0.8 0 1.0" />
         </material>
       </visual>
       <collision>
@@ -257,8 +257,8 @@
         <geometry>
           <mesh filename="visual/4pads_mount_150mm.stl"/>
         </geometry>
-        <material name="tool_green">
-          <color rgba="0 1 0 1.0" />
+        <material name="tool_green_3">
+          <color rgba="1 0 0 1.0" />
         </material>
       </visual>
       <collision>
@@ -341,40 +341,41 @@
 
   <!-- --------------------------------------------------------------------------- -->
 
-  <joint name="force_sensor" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 0"/>
-    <parent link="flange"/>
-    <child link="force_sensor"/>
-  </joint>
+    <joint name="flange-tool" type="fixed">
+      <origin xyz="0.0475 0 0" rpy="3.14 -1.5708 0" />
+      <parent link="flange" />
+      <child link="tool" />
+    </joint>
+    <joint name="force_sensor" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="flange" />
+      <child link="force_sensor" />
+    </joint>
+    
+    
 
-  <joint name="flange-tool" type="fixed">
-    <origin xyz="0 0 0" rpy="-1.57 0 -1.57" />
-    <parent link="flange" />
-    <child link="tool" />
-   </joint>
-
-   <joint name="gripper1" type="fixed">
-    <origin xyz="0 0 0" rpy="0 0 0" />
-    <parent link="tool" />
-    <child link="rod_mount" />
-   </joint>
-
-   <joint name="gripper2" type="fixed">
-    <origin xyz="0 0 0" rpy="0 0 0" />
-    <parent link="tool" />
-    <child link="rod" />
-   </joint>
-
-   <joint name="gripper3" type="fixed">
+    <joint name="gripper1" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="tool" />
+      <child link="rod_mount" />
+    </joint>
+    <joint name="gripper2" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="tool" />
+      <child link="rod" />
+    </joint>
+    <joint name="gripper3" type="fixed">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <parent link="tool" />
       <child link="pad_mount" />
-   </joint>
+    </joint>
 
-   <joint name="tool-tcp" type="fixed">
-      <origin xyz="0.120 0 0.250" rpy="0 0 0" />
+     <joint name="tool-tcp" type="fixed">
+      <origin xyz="0.150 0 0.250" rpy="0 0 0" />
       <parent link="tool" />
       <child link="tcp" />
-   </joint>
+    </joint>
+
+
 
 </robot>

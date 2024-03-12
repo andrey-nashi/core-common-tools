@@ -1,8 +1,16 @@
 scene: [
     {
-        name: tote,
+        name: tote1,
         mesh: tote,
-        origin: [2, 2, 0.2],
+        origin: [1.041, -0.39, 0.94],
+        scale: 1,
+        is_static: True
+    },
+
+    {
+        name: tote2,
+        mesh: tote,
+        origin: [ 1.041, 0.39, 0.94 ],
         scale: 1,
         is_static: True
     },
@@ -10,7 +18,7 @@ scene: [
     {
         name: robot,
         mesh: robot,
-        origin: [0, 0, 0.5],
+        origin: [0, 0, 1],
         scale: 1
 
     }

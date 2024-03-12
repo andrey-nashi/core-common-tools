@@ -1,3 +1,4 @@
+import numpy as np
 import pybullet as p
 class Camera:
 
@@ -11,7 +12,7 @@ class Camera:
     DEFAULT_HEIGHT = 480
     DEFAULT_FOV = 60
     DEFAULT_PLANE_NEAR = 0.1
-    DEFAULT_PLANE_FAR = 1
+    DEFAULT_PLANE_FAR = 2
 
     def __init__(self, look_at: list = DEFAULT_LOOK_AT, distance: float = DEFAULT_DISTANCE, yaw: float = DEFAULT_YAW,
                  pitch: float = DEFAULT_PITCH, roll: float = DEFAULT_ROLL, axis_up: int = DEFAULT_AXIS_UP,
@@ -91,3 +92,10 @@ class Camera:
 
     def get_mask(self):
         return self._buffer_mask
+
+    def transform(self, x, y, z):
+        proj_matrix = np.asarray(self._projection_matrix).reshape([4, 4], order="F")
+        view_matrix = np.asarray(self._view_matrix).reshape([4, 4], order="F")
+        tran_pix_world = np.linalg.inv(np.matmul(proj_matrix, view_matrix))
+
+        print(tran_pix_world)

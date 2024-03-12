@@ -1,17 +1,20 @@
+import numpy as np
 import pybullet as p
 import time
 import pybullet_data
 import math
+import cv2
 
 from core.simulator.sim_camera import Camera
 from core.simulator.sim_library import MeshLibrary
 from core.simulator.sim_levelmap import LevelMap
-
+from core.simulator.robot import RobotController
 
 physicsClient = p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0,0,-9.8)
 planeId = p.loadURDF("plane.urdf")
+
 
 
 path_mesh_lib = "resources/mesh"
@@ -20,41 +23,72 @@ path_cfg = "resources/sim_cfg.yaml"
 
 mesh_library = MeshLibrary(path_mesh_lib)
 level = LevelMap(path_level, mesh_library)
-x = p.getNumJoints(level.robot.ref_id)
 
 
-for i in range(0, x):
-    print(p.getJointInfo(level.robot.ref_id, i))
+ROBOT_BASE = 1
+rc = RobotController(level.robot.ref_id, 14, [2, 3, 4, 6, 7, 8])
+rc.set_pose([0.485, 0.027, ROBOT_BASE + 0.4], [math.pi, 0, 0])
+rc.get_joint_info()
 
-cube = p.loadURDF("cube.urdf", globalScaling=0.1, basePosition=[1, 0, 1], useFixedBase=True)
 
-target_orn = p.getQuaternionFromEuler([0, 0, 0])
-target_pos = [1, 0, 1]
-joint_poses = p.calculateInverseKinematics(level.robot.ref_id, x - 1, target_pos, target_orn)
-print(joint_poses)
-index = [2, 3, 4, 6, 7, 8]
-
-for j in range(0, len(joint_poses)):
-    p.setJointMotorControl2(bodyIndex=level.robot.ref_id, jointIndex=index[j], controlMode=p.POSITION_CONTROL,
-                            targetPosition=joint_poses[j])
-
-for i in range(0, 10):
+for i in range(0, 3):
     name = "can_" + str(i)
     mesh = "cola"
-    origin = [2, 2, 1 + 0.01 * i]
+    origin = [1.041, -0.39, 0.94  + 0.01 * i]
     scale = 5
     level.spawn(name, mesh, origin, scale=scale)
+    print(name, level._table[name].ref_id)
 
-pycam = Camera()
+pycam = Camera(look_at=[1.041, -0.39, 0.94], distance=0.4)
 pycam.open()
 
 frame_counter = 0
 
-while True:
-    p.stepSimulation()
-    time.sleep(1./240)
+pose_tote_1 = [1.041, -0.39, 1]
+pose_tote_2 = [1.041, 0.39, 1]
 
-pycam.capture()
+action = 0
+
+def detect(pycam):
+    seg = pycam.get_mask()
+    depth = pycam.get_depth()
+    print(np.unique(seg))
+    x = np.mean(np.argwhere(seg == 4), axis=0)
+    y = np.mean(np.argwhere(seg == 4), axis=1)
+    #z = depth[x, y]
+    #print (x, y, z)
+    out = np.copy(seg) * 64
+    out = cv2.cvtColor(out, cv2.COLOR_GRAY2BGR)
+    cv2.imwrite("segmentation.png", out)
+
+
+t = 0
+while True:
+    t += 1
+
+    if t > 480:
+
+        if action == 0:
+            pycam.capture()
+            detect(pycam)
+            action = 1
+        elif action == 1:
+            flag = rc.move_to(pose_tote_1, [math.pi, 0, 0], 240)
+            if not flag:
+                print("SWITCHING TO NEXT")
+                action = 2
+        elif action == 2:
+            flag = rc.move_to(pose_tote_2, [math.pi, 0, 0], 240)
+            if not flag:
+                print("SWITCHING TO NEXT")
+                action = 1
+
+
+    p.stepSimulation()
+
+
+
+
 
 rgb_image = pycam.get_rgb()
 depth_data = pycam.get_depth()

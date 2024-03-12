@@ -1,32 +1,29 @@
 import math
 import pybullet as p
 import pybullet_data
-
+from core.simulator.robot import RobotController
 
 p.connect(p.GUI)  # or p.GUI for graphical version
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -10)
 
-plane_id = p.loadURDF("plane.fs_wacoh")
-path = "kuka_iiwa/model_vr_limits.fs_wacoh"
-#path = "./resources/mesh/robot/fanuc_robot.fs_wacoh"
+plane_id = p.loadURDF("plane.urdf")
+path = "kuka_iiwa/model_vr_limits.urdf"
+#path = "./resources/mesh/robot/fanuc_robot.urdf"
 
 
 kuka_id = p.loadURDF(path, 1.400000, -0.200000, 0.600000, 0.000000, 0.000000, 0.000000, 1.000000)
-table_id = p.loadURDF("table/table.fs_wacoh", basePosition=[1.0, -0.2, 0.0], baseOrientation=[0, 0, 0.7071, 0.7071])
-cube_id = p.loadURDF("cube.fs_wacoh", basePosition=[0.85, -0.2, 0.65], globalScaling=0.05)
+table_id = p.loadURDF("table/table.urdf", basePosition=[1.0, -0.2, 0.0], baseOrientation=[0, 0, 0.7071, 0.7071])
+cube_id = p.loadURDF("cube.urdf", basePosition=[0.85, -0.2, 0.65], globalScaling=0.05)
 
-# attach gripper to kuka arm (no real gripper!)
+rc = RobotController(kuka_id)
+
+
 kuka_cid = None
 
-# reset kuka
-jointPositions = [-0.000000, -0.000000, 0.000000, 1.570793, 0.000000, -1.036725, 0.000001]
-jointPositions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-print(">>>>>>", p.getNumJoints(kuka_id))
-for jointIndex in range(p.getNumJoints(kuka_id)):
-    print("!!!", jointIndex)
-    p.resetJointState(kuka_id, jointIndex, jointPositions[jointIndex])
-    p.setJointMotorControl2(kuka_id, jointIndex, p.POSITION_CONTROL, jointPositions[jointIndex], 0)
+
+
+rc.reset_joints()
 
 num_joints = p.getNumJoints(kuka_id)
 kuka_end_effector_idx = 6
@@ -62,7 +59,7 @@ is_grab = None
 t = -1
 while True:
     t += 1
-    if t % 8 == 0:  # PyBullet default simulation time step is 240fps, but we want to record video at 30fps.
+    if t % 8 == 0:
         cam_view_matrix = p.computeViewMatrixFromYawPitchRoll(cam_target_pos, cam_distance, cam_yaw, cam_pitch,
                                                               cam_roll, cam_up_axis_idx)
         cam_projection_matrix = p.computeProjectionMatrixFOV(cam_fov, cam_width * 1. / cam_height, cam_near_plane,
@@ -110,43 +107,14 @@ while True:
     if 10 * move_time < t < 11 * move_time:
         target_pos = move_to_location(pose_object_1, pose_above_1, 10 * move_time, move_time, t)
         is_grab = 0
-
-
     if t == 11 * move_time:
         t = 0
 
-    """
-    if t >= 150 and t < 250:
-        target_pos, gripper_val = [0.85, -0.2, 0.75], 1  # grab object
-    elif t >= 250 and t < 400:
-        target_pos, gripper_val = [0.85, -0.2, 0.75 + 0.2 * (t - 250) / 150.], 1  # move up after picking object
-    elif t >= 400 and t < 600:
-        target_pos, gripper_val = [0.85, -0.2 + 0.4 * (t - 400) / 200., 0.95], 1  # move to target position
-    elif t >= 600 and t < 700:
-        target_pos, gripper_val = [0.85, 0.2, 0.95], 1  # stop at target position
-    elif t >= 700 and t < 900:
-        target_pos, gripper_val = [0.85, 0.2, 0.95], 0  # drop object
-    elif t >= 900 and t < 1050:
-        target_pos, gripper_val = [0.85, 0.2, 0.95 - 0.2 * (t - 900) / 150.], 0
-    elif t >= 1050 and t < 1150:
-        target_pos, gripper_val = [0.85, 0.2, 0.75], 1
-    elif t >= 1150 and t < 1300:
-        target_pos, gripper_val = [0.85, 0.2, 0.75 + 0.2 * (t - 1150) / 150.], 1
-    elif t >= 1300 and t < 1500:
-        target_pos, gripper_val = [0.85, 0.2 - 0.4 * (t - 1300) / 200., 0.95], 1
-    elif t >= 1500 and t < 1650:
-        target_pos, gripper_val = [0.85, -0.2, 0.95], 1
-    elif t > 1500:
-        target_pos, gripper_val = [0.85, -0.2, 0.95 - 0.2 * (t - 1500) / 150.], 1
-    """
-
     if target_pos is None: continue
 
-    target_orn = p.getQuaternionFromEuler([0, 1.01 * math.pi, 0])
-    joint_poses = p.calculateInverseKinematics(kuka_id, kuka_end_effector_idx, target_pos, target_orn)
-    for j in range(num_joints):
-        p.setJointMotorControl2(bodyIndex=kuka_id, jointIndex=j, controlMode=p.POSITION_CONTROL,
-                                targetPosition=joint_poses[j])
+
+    rc.set_pose(target_pos, [0, 1.01 * math.pi, 0])
+
 
     if is_grab == 0 and kuka_cid != None:
         p.removeConstraint(kuka_cid)
