@@ -34,7 +34,7 @@ rc.get_joint_info()
 for i in range(0, 3):
     name = "can_" + str(i)
     mesh = "cola"
-    origin = [1.041, -0.39, 0.94  + 0.01 * i]
+    origin = [1.041, -0.39, 0.94  + 0.005 * i]
     scale = 5
     level.spawn(name, mesh, origin, scale=scale)
     print(name, level._table[name].ref_id)
@@ -53,30 +53,35 @@ def detect(pycam):
     seg = pycam.get_mask()
     depth = pycam.get_depth()
     print(np.unique(seg))
-    x = np.mean(np.argwhere(seg == 4), axis=0)
-    y = np.mean(np.argwhere(seg == 4), axis=1)
-    #z = depth[x, y]
-    #print (x, y, z)
-    out = np.copy(seg) * 64
+    x = int(np.mean(np.argwhere(seg == 4).T[0]))
+    y = int(np.mean(np.argwhere(seg == 4).T[1]))
+    z = depth[x, y]
+    print (x, y)
+    out = np.copy(seg) * 20
+    out = out.astype(np.uint8)
     out = cv2.cvtColor(out, cv2.COLOR_GRAY2BGR)
+    cv2.circle(out, [int(y),int(x)], 5, [255, 0, 0], -1)
     cv2.imwrite("segmentation.png", out)
-
+    print([x, y, z], "<-----")
+    xyz = pycam.transform(x, y, z)
+    return xyz
 
 t = 0
 while True:
     t += 1
 
-    if t > 480:
+    if t > 500:
 
         if action == 0:
             pycam.capture()
-            detect(pycam)
+            XYZ = detect(pycam)
             action = 1
         elif action == 1:
-            flag = rc.move_to(pose_tote_1, [math.pi, 0, 0], 240)
+            flag = rc.move_to(XYZ, [math.pi, 0, 0], 240)
             if not flag:
                 print("SWITCHING TO NEXT")
-                action = 2
+                #action = 2
+                action = 3
         elif action == 2:
             flag = rc.move_to(pose_tote_2, [math.pi, 0, 0], 240)
             if not flag:

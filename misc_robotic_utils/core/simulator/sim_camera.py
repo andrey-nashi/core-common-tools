@@ -93,9 +93,28 @@ class Camera:
     def get_mask(self):
         return self._buffer_mask
 
-    def transform(self, x, y, z):
-        proj_matrix = np.asarray(self._projection_matrix).reshape([4, 4], order="F")
-        view_matrix = np.asarray(self._view_matrix).reshape([4, 4], order="F")
-        tran_pix_world = np.linalg.inv(np.matmul(proj_matrix, view_matrix))
+    def image_to_world(self, image_x, image_y, depth, view_matrix, proj_matrix, image_width, image_height):
+        # Normalize image coordinates to range [-1, 1]
+        ndc_x = (2.0 * image_x / image_width) - 1.0
+        ndc_y = 1.0 - (2.0 * image_y / image_height)
 
-        print(tran_pix_world)
+        # Construct homogeneous coordinates in camera space
+        homogeneous_coords = np.array([ndc_x * depth, ndc_y * depth, depth, 1.0])
+
+        # Compute inverse matrices
+        inv_proj_matrix = np.linalg.inv(proj_matrix)
+        inv_view_matrix = np.linalg.inv(view_matrix)
+
+        # Transform homogeneous coordinates to world coordinates
+        intermediate_coords = np.dot(inv_proj_matrix, homogeneous_coords)
+        intermediate_coords = intermediate_coords / intermediate_coords[3]
+        world_coords = np.dot(inv_view_matrix, intermediate_coords)
+
+        return world_coords[:3]
+
+    def transform(self, x, y, depth):
+        out = self.image_to_world(
+            x, y, depth, np.array(self._view_matrix).reshape((4,4)), np.array(self._projection_matrix).reshape((4,4)), self._cam_width, self._cam_height
+        )
+        print(out)
+        return out.tolist()
