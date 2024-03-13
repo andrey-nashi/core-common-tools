@@ -98,8 +98,8 @@ class Camera:
     def find_object(self, object_id):
         seg = self.get_mask()
         depth = self.get_depth()
-        x = int(np.mean(np.argwhere(seg == 4).T[0]))
-        y = int(np.mean(np.argwhere(seg == 4).T[1]))
+        x = int(np.mean(np.argwhere(seg == object_id).T[0]))
+        y = int(np.mean(np.argwhere(seg == object_id).T[1]))
         z = depth[x, y]
         out = np.copy(seg) * 20
         out = out.astype(np.uint8)
