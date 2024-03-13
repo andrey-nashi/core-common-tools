@@ -1,5 +1,7 @@
 import numpy as np
 import pybullet as p
+import cv2
+
 class Camera:
 
     DEFAULT_LOOK_AT = [0, 0, 0]
@@ -93,28 +95,15 @@ class Camera:
     def get_mask(self):
         return self._buffer_mask
 
-    def image_to_world(self, image_x, image_y, depth, view_matrix, proj_matrix, image_width, image_height):
-        # Normalize image coordinates to range [-1, 1]
-        ndc_x = (2.0 * image_x / image_width) - 1.0
-        ndc_y = 1.0 - (2.0 * image_y / image_height)
+    def find_object(self, object_id):
+        seg = self.get_mask()
+        depth = self.get_depth()
+        x = int(np.mean(np.argwhere(seg == 4).T[0]))
+        y = int(np.mean(np.argwhere(seg == 4).T[1]))
+        z = depth[x, y]
+        out = np.copy(seg) * 20
+        out = out.astype(np.uint8)
+        out = cv2.cvtColor(out, cv2.COLOR_GRAY2BGR)
+        cv2.circle(out, [int(y), int(x)], 5, [255, 0, 0], -1)
+        cv2.imwrite("segmentation.png", out)
 
-        # Construct homogeneous coordinates in camera space
-        homogeneous_coords = np.array([ndc_x * depth, ndc_y * depth, depth, 1.0])
-
-        # Compute inverse matrices
-        inv_proj_matrix = np.linalg.inv(proj_matrix)
-        inv_view_matrix = np.linalg.inv(view_matrix)
-
-        # Transform homogeneous coordinates to world coordinates
-        intermediate_coords = np.dot(inv_proj_matrix, homogeneous_coords)
-        intermediate_coords = intermediate_coords / intermediate_coords[3]
-        world_coords = np.dot(inv_view_matrix, intermediate_coords)
-
-        return world_coords[:3]
-
-    def transform(self, x, y, depth):
-        out = self.image_to_world(
-            x, y, depth, np.array(self._view_matrix).reshape((4,4)), np.array(self._projection_matrix).reshape((4,4)), self._cam_width, self._cam_height
-        )
-        print(out)
-        return out.tolist()

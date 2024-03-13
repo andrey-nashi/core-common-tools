@@ -1,7 +1,7 @@
 import pybullet as p
 import yaml
 
-from .sim_library import *
+from .meshlib import *
 # ----------------------------------------------------------------------------------------
 
 class Object3D:

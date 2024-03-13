@@ -50,8 +50,8 @@ class RobotController:
     def grasp(self, object_index):
         if self._grasp_descriptor is None:
             cube_orn = p.getQuaternionFromEuler([0, math.pi, 0])
-            self._grasp_descriptor = p.createConstraint(self._robot_id, 6, object_index, -1, p.JOINT_FIXED, [0, 0, 0], [0, 0, 0.05], [0, 0, 0],
-                                          childFrameOrientation=cube_orn)
+            self._grasp_descriptor = p.createConstraint(self._robot_id, self._eff_index, object_index, -1, p.JOINT_FIXED, [0, 0, 0], [0, 0, -0.01], [0, 0, 0],
+                                         )
 
     def release(self):
         if self._grasp_descriptor is not None:
@@ -90,7 +90,6 @@ class RobotController:
                 index += 1
 
             if self._move_timestamp == time_interval:
-                print("!!! MOVEMENT ENDED")
                 self._is_moving = False
                 self._eff_position = self._move_position_end.copy()
                 self._move_position_start = None

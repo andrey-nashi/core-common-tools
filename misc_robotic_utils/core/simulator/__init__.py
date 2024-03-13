@@ -1,2 +1,2 @@
-from .sim_camera import Camera
-from .sim_library import MeshLibrary
+from .camera import Camera
+from .meshlib import MeshLibrary

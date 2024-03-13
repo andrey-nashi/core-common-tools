@@ -1,21 +1,19 @@
-import numpy as np
+
 import pybullet as p
-import time
 import pybullet_data
 import math
-import cv2
 
-from core.simulator.sim_camera import Camera
-from core.simulator.sim_library import MeshLibrary
-from core.simulator.sim_levelmap import LevelMap
+from core.simulator.camera import Camera
+from core.simulator.meshlib import MeshLibrary
+from core.simulator.levelmap import LevelMap
 from core.simulator.robot import RobotController
+from core.simulator.action import ActionSequence
+
 
 physicsClient = p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0,0,-9.8)
 planeId = p.loadURDF("plane.urdf")
-
-
 
 path_mesh_lib = "resources/mesh"
 path_level = "resources/sim_level.yaml"
@@ -25,9 +23,16 @@ mesh_library = MeshLibrary(path_mesh_lib)
 level = LevelMap(path_level, mesh_library)
 
 
+ROBOT_EFF_INDEX = 14
+ROBOT_JOINT_INDICES = [2, 3, 4, 6, 7, 8]
+ROBOT_POSE_HOME = [0.485, 0.027, 1 + 0.4]
+ROBOT_POSE_TOTE1 = [1.041, -0.39, 1]
+ROBOT_POSE_TOTE2 = [1.041, 0.39, 1]
+
+
 ROBOT_BASE = 1
-rc = RobotController(level.robot.ref_id, 14, [2, 3, 4, 6, 7, 8])
-rc.set_pose([0.485, 0.027, ROBOT_BASE + 0.4], [math.pi, 0, 0])
+rc = RobotController(level.robot.ref_id, ROBOT_EFF_INDEX, ROBOT_JOINT_INDICES)
+rc.set_pose(ROBOT_POSE_HOME, [math.pi, 0, 0])
 rc.get_joint_info()
 
 
@@ -37,71 +42,41 @@ for i in range(0, 3):
     origin = [1.041, -0.39, 0.94  + 0.005 * i]
     scale = 5
     level.spawn(name, mesh, origin, scale=scale)
-    print(name, level._table[name].ref_id)
 
-pycam = Camera(look_at=[1.041, -0.39, 0.94], distance=0.4)
-pycam.open()
 
-frame_counter = 0
+camera_1 = Camera(look_at=[1.041, -0.39, 0.94], distance=0.4)
+camera_1.open()
 
-pose_tote_1 = [1.041, -0.39, 1]
-pose_tote_2 = [1.041, 0.39, 1]
+camera_2 = Camera(look_at=[1.041, 0.39, 0.94], distance=0.4)
+camera_2.open()
 
-action = 0
+sequence = ActionSequence(rc, {"camera_1": camera_1, "camera_2": camera_2})
+sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
+sequence.add_action(ActionSequence.ACTION_CAPTURE, {"camera_id": "camera_1"})
+sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": ROBOT_POSE_TOTE1,"orientation": [math.pi, 0, 0], "time_interval": 100})
+sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": "can", "orientation": [math.pi, 0, 0], "time_interval": 100})
+sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
+sequence.add_action(ActionSequence.ACTION_GRASP, {})
+sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": ROBOT_POSE_TOTE1,"orientation": [math.pi, 0, 0], "time_interval": 100 })
+sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": ROBOT_POSE_TOTE2,"orientation": [math.pi, 0, 0], "time_interval": 100 })
+sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
+sequence.add_action(ActionSequence.ACTION_RELEASE, {})
+sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": ROBOT_POSE_HOME, "orientation": [math.pi, 0, 0], "time_interval": 100})
+sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
+sequence.add_action(ActionSequence.ACTION_CAPTURE, {"camera_id": "camera_2"})
+sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": "can", "orientation": [math.pi, 0, 0], "time_interval": 100})
+sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
+sequence.add_action(ActionSequence.ACTION_GRASP, {})
+sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": ROBOT_POSE_TOTE2,"orientation": [math.pi, 0, 0], "time_interval": 100 })
+sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": ROBOT_POSE_TOTE1,"orientation": [math.pi, 0, 0], "time_interval": 100 })
+sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
+sequence.add_action(ActionSequence.ACTION_RELEASE, {})
+sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
+sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": ROBOT_POSE_HOME, "orientation": [math.pi, 0, 0], "time_interval": 100})
+sequence.add_action(ActionSequence.ACTION_RESET, {})
 
-def detect(pycam):
-    seg = pycam.get_mask()
-    depth = pycam.get_depth()
-    print(np.unique(seg))
-    x = int(np.mean(np.argwhere(seg == 4).T[0]))
-    y = int(np.mean(np.argwhere(seg == 4).T[1]))
-    z = depth[x, y]
-    print (x, y)
-    out = np.copy(seg) * 20
-    out = out.astype(np.uint8)
-    out = cv2.cvtColor(out, cv2.COLOR_GRAY2BGR)
-    cv2.circle(out, [int(y),int(x)], 5, [255, 0, 0], -1)
-    cv2.imwrite("segmentation.png", out)
-    print([x, y, z], "<-----")
-    xyz = pycam.transform(x, y, z)
-    return xyz
-
-t = 0
 while True:
-    t += 1
-
-    if t > 500:
-
-        if action == 0:
-            pycam.capture()
-            XYZ = detect(pycam)
-            action = 1
-        elif action == 1:
-            flag = rc.move_to(XYZ, [math.pi, 0, 0], 240)
-            if not flag:
-                print("SWITCHING TO NEXT")
-                #action = 2
-                action = 3
-        elif action == 2:
-            flag = rc.move_to(pose_tote_2, [math.pi, 0, 0], 240)
-            if not flag:
-                print("SWITCHING TO NEXT")
-                action = 1
-
-
+    sequence.update()
     p.stepSimulation()
-
-
-
-
-
-rgb_image = pycam.get_rgb()
-depth_data = pycam.get_depth()
-depth_data = (depth_data - np.min(depth_data)) / (np.max(depth_data)  - np.min(depth_data)) * 255
-segmentation_mask = pycam.get_mask()
-rgb_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
-cv2.imwrite("rgb.png", rgb_image )
-cv2.imwrite("depth.png", depth_data)
-cv2.imwrite( "segmentation.png", segmentation_mask)
 
 p.disconnect()
