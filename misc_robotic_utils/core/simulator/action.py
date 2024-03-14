@@ -67,16 +67,15 @@ class ActionSequence:
 
     def _action_capture(self, action_args):
         camera_id = action_args["camera_id"]
+        obj_ids = action_args["obj_ids"]
         self._camera_table[camera_id].capture()
-        self._camera_table[camera_id].find_object(self._obj)
-        can = p.getBasePositionAndOrientation(self._obj)[0]
-        print(can)
-        self._temp["can"] = list(can)
+        self._obj, obj_pose_cam = self._camera_table[camera_id].find_object(obj_ids)
+
+        self._temp["can"] = list(obj_pose_cam)
         self._action_id += 1
 
     def _action_reset(self, action_args):
         self._action_id = 0
-        self._obj = 4 + random.randint(0, 2)
 
     def add_action(self, action_id, action_args):
         self._action_sequence.append({

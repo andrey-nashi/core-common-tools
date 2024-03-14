@@ -1,3 +1,6 @@
+import math
+import random
+
 import numpy as np
 import pybullet as p
 import cv2
@@ -95,15 +98,56 @@ class Camera:
     def get_mask(self):
         return self._buffer_mask
 
-    def find_object(self, object_id):
+
+    def find_object(self, obj_ids):
         seg = self.get_mask()
         depth = self.get_depth()
-        x = int(np.mean(np.argwhere(seg == object_id).T[0]))
-        y = int(np.mean(np.argwhere(seg == object_id).T[1]))
-        z = depth[x, y]
+
+        obj_ids_in_frame = np.unique(seg).tolist()
+        obj_ids_in_frame = [idx for idx in obj_ids_in_frame if idx in obj_ids]
+        if len(obj_ids_in_frame) == 0:
+            return None
+        obj_id = obj_ids_in_frame[random.randint(0, len(obj_ids_in_frame) -1)]
+
+        y = int(np.mean(np.argwhere(seg == obj_id).T[0]))
+        x = int(np.mean(np.argwhere(seg == obj_id).T[1]))
+        d = depth[y, x]
+        print(np.min(depth), np.max(depth))
         out = np.copy(seg) * 20
         out = out.astype(np.uint8)
         out = cv2.cvtColor(out, cv2.COLOR_GRAY2BGR)
-        cv2.circle(out, [int(y), int(x)], 5, [255, 0, 0], -1)
+        cv2.circle(out, [int(x), int(y)], 5, [255, 0, 0], -1)
         cv2.imwrite("segmentation.png", out)
+        cv2.imwrite("depth.png", (depth * 255).astype(np.uint8))
 
+        d = (d - self._cam_plane_near) / (self._cam_plane_far - self._cam_plane_near)
+        obj_pose = self.image_to_world_point(x, y, d, self._view_matrix, self._projection_matrix, self._cam_width, self._cam_height)
+
+        x_n = 2 * x / self._cam_width - 1
+        y_n = 2 * y / self._cam_height - 1
+        z_n = (d - self._cam_plane_near) / (self._cam_plane_far - self._cam_plane_near)
+
+        obj_pose_r = p.getBasePositionAndOrientation(obj_id)[0]
+        print(obj_pose, obj_pose_r)
+        return obj_id, obj_pose_r
+
+    def image_to_world_point(self, x, y, depth, view_matrix, projection_matrix, image_width, image_height):
+        # Step 1: Image Coordinates to NDC
+        x_ndc = (2 * x) / image_width - 1
+        y_ndc = 1 - (2 * y) / image_height  # Inverting y to match the NDC space
+        z_ndc = 2 * depth - 1  # Assuming depth is normalized [0, 1]
+
+        ndc_point = np.array([x_ndc, y_ndc, z_ndc, 1])
+
+        # Step 2: NDC to Camera Space
+        inv_projection_matrix = np.linalg.inv(np.array(projection_matrix).reshape(4, 4))
+        camera_space_point = np.dot(inv_projection_matrix, ndc_point)
+        camera_space_point /= camera_space_point[3]  # Dehomogenize
+
+        print(camera_space_point)
+        # Step 3: Camera Space to World Space
+        inv_view_matrix = np.linalg.inv(np.array(view_matrix).reshape(4, 4))
+        world_space_point = np.dot(inv_view_matrix, camera_space_point)
+        world_space_point /= world_space_point[3]  # Dehomogenize
+
+        return world_space_point[:3]  # Returning XYZ, omitting the w component

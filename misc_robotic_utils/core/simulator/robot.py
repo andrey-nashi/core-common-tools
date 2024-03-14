@@ -49,9 +49,23 @@ class RobotController:
 
     def grasp(self, object_index):
         if self._grasp_descriptor is None:
-            cube_orn = p.getQuaternionFromEuler([0, math.pi, 0])
-            self._grasp_descriptor = p.createConstraint(self._robot_id, self._eff_index, object_index, -1, p.JOINT_FIXED, [0, 0, 0], [0, 0, -0.01], [0, 0, 0],
-                                         )
+            pos1, ori1 = p.getBasePositionAndOrientation(object_index)
+            x = p.getLinkState(self._robot_id, self._eff_index)
+            ori2 = x[1]
+            relativeOrientation = p.getDifferenceQuaternion(ori1, ori2)
+
+            self._grasp_descriptor = p.createConstraint(
+                parentBodyUniqueId=self._robot_id,
+                parentLinkIndex=self._eff_index,  # Use -1 for the base
+                childBodyUniqueId=object_index,
+                childLinkIndex=-1,  # Use -1 for the base
+                jointType=p.JOINT_FIXED,
+                jointAxis=[0, 0, 0],  # Not used for fixed joints
+                parentFramePosition=[0,0,0],
+                childFramePosition=[0, 0, 0],  # Position relative to the child's frame
+                parentFrameOrientation=relativeOrientation,
+                childFrameOrientation=[0, 0, 0, 1]
+            )
 
     def release(self):
         if self._grasp_descriptor is not None:

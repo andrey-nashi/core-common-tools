@@ -35,13 +35,15 @@ rc = RobotController(level.robot.ref_id, ROBOT_EFF_INDEX, ROBOT_JOINT_INDICES)
 rc.set_pose(ROBOT_POSE_HOME, [math.pi, 0, 0])
 rc.get_joint_info()
 
-
+obj_ids = []
 for i in range(0, 3):
     name = "can_" + str(i)
     mesh = "cola"
     origin = [1.041, -0.39, 0.94  + 0.005 * i]
     scale = 5
     level.spawn(name, mesh, origin, scale=scale)
+    obj_id = level._table[name].ref_id
+    obj_ids.append(obj_id)
 
 
 camera_1 = Camera(look_at=[1.041, -0.39, 0.94], distance=0.4)
@@ -52,7 +54,7 @@ camera_2.open()
 
 sequence = ActionSequence(rc, {"camera_1": camera_1, "camera_2": camera_2})
 sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
-sequence.add_action(ActionSequence.ACTION_CAPTURE, {"camera_id": "camera_1"})
+sequence.add_action(ActionSequence.ACTION_CAPTURE, {"camera_id": "camera_1", "obj_ids": obj_ids})
 sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": ROBOT_POSE_TOTE1,"orientation": [math.pi, 0, 0], "time_interval": 100})
 sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": "can", "orientation": [math.pi, 0, 0], "time_interval": 100})
 sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
@@ -63,7 +65,7 @@ sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
 sequence.add_action(ActionSequence.ACTION_RELEASE, {})
 sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": ROBOT_POSE_HOME, "orientation": [math.pi, 0, 0], "time_interval": 100})
 sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
-sequence.add_action(ActionSequence.ACTION_CAPTURE, {"camera_id": "camera_2"})
+sequence.add_action(ActionSequence.ACTION_CAPTURE, {"camera_id": "camera_2", "obj_ids": obj_ids})
 sequence.add_action(ActionSequence.ACTION_MOVE, {"pose": "can", "orientation": [math.pi, 0, 0], "time_interval": 100})
 sequence.add_action(ActionSequence.ACTION_WAIT, {"t": 50})
 sequence.add_action(ActionSequence.ACTION_GRASP, {})
