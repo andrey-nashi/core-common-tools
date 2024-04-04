@@ -102,6 +102,9 @@ class Camera:
     def find_object(self, obj_ids):
         seg = self.get_mask()
         depth = self.get_depth()
+        rgb = self.get_rgb()
+        rgb = rgb.astype(np.uint8)
+        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
 
         obj_ids_in_frame = np.unique(seg).tolist()
         obj_ids_in_frame = [idx for idx in obj_ids_in_frame if idx in obj_ids]
@@ -119,6 +122,7 @@ class Camera:
         cv2.circle(out, [int(x), int(y)], 5, [255, 0, 0], -1)
         cv2.imwrite("segmentation.png", out)
         cv2.imwrite("depth.png", (depth * 255).astype(np.uint8))
+        cv2.imwrite("image.png", rgb)
 
         d = (d - self._cam_plane_near) / (self._cam_plane_far - self._cam_plane_near)
         obj_pose = self.image_to_world_point(x, y, d, self._view_matrix, self._projection_matrix, self._cam_width, self._cam_height)
