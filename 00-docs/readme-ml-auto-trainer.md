@@ -1,5 +1,9 @@
 **ml_auto_trainer**
 
+**SCRIPTS**
+- `run-exp-cfg.py` - execute training a simple network using a config file
+- `run-exp-code.py` - execute training a network, directly implementing training steps using the library
+
 ---------------------------------------------------------
 **MODELS**
 

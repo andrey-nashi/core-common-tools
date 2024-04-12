@@ -1,5 +1,5 @@
 # core-common-tools
-Common tools and helper scripts
+Library of the most commonly used tools accumulated from various projects
 
 
 | Module               | Description                                          | Documentation                                 |
