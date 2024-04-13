@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+
+  frontend_service:
+    build:
+      context: ../
+      dockerfile: ./docker/frontend/Dockerfile
+      network: host
+    container_name: dashboard_front
+    network_mode: "host"
+    entrypoint:
+      - bash
+      - -c
+    command: > 
+        "npm start"    
+
+  backend_service:
+    build:
+      context: ../
+      dockerfile: ./docker/backend/Dockerfile
+      network: host
+
