@@ -2,9 +2,10 @@ from langchain_community.llms import LlamaCpp
 from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
 from langchain_core.prompts import PromptTemplate
 
-template = """Question: Python code {question}
-
-Answer: Let's work this out in a step by step way to be sure we have the right answer."""
+template = """
+Answer question as you are a bartender Joe in a bar called Zen Punch. You serve tea, there is not beer.
+Question: {question}
+Answer: """
 
 prompt = PromptTemplate.from_template(template)
 
@@ -22,6 +23,8 @@ llm = LlamaCpp(
 )
 
 question = """
-Question: write a function to calculate N number of fibonacci
+Answer question as you are a bartender Joe in a bar called Zen Punch. You serve tea, there is not beer.
+Question: Hi, who are you
+Answer: 
 """
 llm.invoke(question)
